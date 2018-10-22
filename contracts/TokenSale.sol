@@ -3,7 +3,7 @@ pragma solidity 0.4.24;
 import './SafeMath.sol';
 import './ERC20Interface.sol';
 
-// TODO: add day restrictions for funding + withdraw
+// TODO: add mechanism for situation nobody funds in a day
 contract TokenSale {
   using SafeMath for *;
 
@@ -44,15 +44,16 @@ contract TokenSale {
     return true;
   }
 
-  function fund()
+  function fund(uint16 _day)
   payable
   duringSale
   public {
-      Day storage today = day[dayFor(now)];
+      require(dayFor(now) <= _day);
+      Day storage today = day[_day];
       today.weiPerToken = today.weiPerToken.add(msg.value.mul(scalingFactor).div(tokensPerDay));
       today.dayIncome = today.dayIncome.add(msg.value);
       today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
-      emit LogTokensPurchased(msg.sender, msg.value, dayFor(now));
+      emit LogTokensPurchased(msg.sender, msg.value, _day);
   }
 
 
@@ -75,7 +76,7 @@ contract TokenSale {
   public
   returns (bool) {
     uint amount;
-    require(_day.length < 100); 
+    require(_day.length < 100);
       for (uint i = 0; i < _day.length; i++){
         require(dayFinished(_day[i]));
         require(updateclaimableTokens(msg.sender, _day[i]));
