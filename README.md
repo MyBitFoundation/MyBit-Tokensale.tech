@@ -1,14 +1,17 @@
-# MyBit-Tokensale.tech
-The smart-contracts for the second token release in January 2019
+# MyBit-Tokensale
 
+The contracts handing the tokensale for the MYB token.
+
+## Details
 The contracts release 250,000 MYB tokens everyday. Investors can contribute Ether at any day and they will split the days release in proportion to the Ether they contributed. Investors can withdraw their purchased MYB the next day.
 
-# Details
 Length: 365 days
+
 Tokens: 250,000 MYB released every day
+
 Funding Currency: Ether
 
-# To use
+## Guide
 
 The contract keeps track of how much WEI it has receive for a certain 24 hour period. An investor can choose any future day he wishes, or else send Ether into the current day.
 
@@ -61,3 +64,7 @@ returns (uint) {
     return (getTokensForContribution(_user, _day).add(day[_day].claimableTokens[_user]).div(scalingFactor));
 }
 ```
+
+⚠️ This application is unstable and has not undergone any rigorous security audits. Use at your own risk.
+
+ MyBit Platform™ CHE-177.186.963  
