@@ -50,6 +50,7 @@ contract TokenSale {
   duringSale
   public {
       require(dayFor(now) <= _day);
+      require(msg.value > 0);
       Day storage today = day[_day];
       today.dayIncome = today.dayIncome.add(msg.value);
       //today.weiPerToken = today.weiPerToken.add(msg.value.mul(scalingFactor).div(tokensPerDay));
@@ -115,7 +116,7 @@ contract TokenSale {
   internal
   returns (bool) {
       Day storage thisDay = day[_day];
-      thisDay.claimableTokens[msg.sender] = thisDay.weiContributed[msg.sender].mul(decimals).div(thisDay.weiPerToken);
+      thisDay.claimableTokens[_user] = thisDay.weiContributed[_user].mul(decimals).div(thisDay.weiPerToken);
       //thisDay.claimableTokens[_user] = thisDay.claimableTokens[_user].add(getTokensForContribution(_user, _day));
       //thisDay.previousWeiPerToken[_user] = thisDay.weiPerToken;
       return true;
