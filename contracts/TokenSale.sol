@@ -81,10 +81,10 @@ contract TokenSale {
     uint amount;
     require(_day.length < 100);
       for (uint i = 0; i < _day.length; i++){
-        require(dayFinished(_day[i]));
-        require(updateclaimableTokens(msg.sender, _day[i]));
+        require(dayFinished(_day[i]), 'Day not finished');
+        require(updateclaimableTokens(msg.sender, _day[i]), 'Cannot update claimable tokens');
         Day storage thisDay = day[_day[i]];
-        uint amountToAdd = thisDay.claimableTokens[msg.sender].div(scalingFactor);
+        uint amountToAdd = thisDay.claimableTokens[msg.sender];
         amount = amount.add(amountToAdd);
         delete thisDay.claimableTokens[msg.sender];
         emit LogTokensCollected(msg.sender, amountToAdd, _day[i], thisDay.weiPerToken, thisDay.weiContributed[msg.sender]);
@@ -99,10 +99,12 @@ contract TokenSale {
   view
   returns (uint) {
       Day storage thisDay = day[_day];
-      uint weiPerTokenDifference = thisDay.weiPerToken.sub(thisDay.previousWeiPerToken[_user]);
-      return weiPerTokenDifference.mul(thisDay.weiContributed[_user]);
+      uint tokens = thisDay.weiContributed[_user].mul(decimals).div(thisDay.weiPerToken);
+      //uint weiPerTokenDifference = thisDay.weiPerToken.sub(thisDay.previousWeiPerToken[_user]);
+      //return weiPerTokenDifference.mul(thisDay.weiContributed[_user]);
+      return tokens;
   }
-
+/*
   // @notice Calculates how much wei user is owed. (new income + claimableTokens) / 10**32
   function getUnclaimedAmount(address _user, uint16 _day)
   public
@@ -110,7 +112,7 @@ contract TokenSale {
   returns (uint) {
       return (getTokensForContribution(_user, _day).add(day[_day].claimableTokens[_user]).div(scalingFactor));
   }
-
+*/
   // @notice update the amount claimable by this user
   function updateclaimableTokens(address _user, uint16 _day)
   internal
