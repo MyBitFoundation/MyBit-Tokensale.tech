@@ -180,9 +180,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.4.24;\n// ----------------------------------------------------------------------------\n// ERC Token Standard #20 Interface\n// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md\n// ----------------------------------------------------------------------------\ncontract ERC20Interface {\n    function totalSupply() public constant returns (uint);\n    function balanceOf(address tokenOwner) public constant returns (uint balance);\n    function allowance(address tokenOwner, address spender) public constant returns (uint remaining);\n    function transfer(address to, uint tokens) public returns (bool success);\n    function approve(address spender, uint tokens) public returns (bool success);\n    function transferFrom(address from, address to, uint tokens) public returns (bool success);\n\n    event Transfer(address indexed from, address indexed to, uint tokens);\n    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);\n}\n",
-  "sourcePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
+  "sourcePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
   "ast": {
-    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
+    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
     "exportedSymbols": {
       "ERC20Interface": [
         509
@@ -1015,7 +1015,7 @@
     "src": "0:973:1"
   },
   "legacyAST": {
-    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
+    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
     "exportedSymbols": {
       "ERC20Interface": [
         509
@@ -1853,5 +1853,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2018-10-22T09:38:45.012Z"
+  "updatedAt": "2018-10-25T05:12:33.606Z"
 }
