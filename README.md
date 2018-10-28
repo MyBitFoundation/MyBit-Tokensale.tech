@@ -3,17 +3,17 @@
 The contracts handing the tokensale for the MYB token.
 
 ## Details
-The contracts release 250,000 MYB tokens everyday. Investors can contribute Ether at any day and they will split the days release in proportion to the Ether they contributed. Investors can withdraw their purchased MYB the next day.
+The contracts release 100,000 MYB tokens everyday. Investors can contribute Ether at any day and they will split the days release of MYB in proportion to the Ether they contributed. Investors can withdraw their purchased MYB the next day.
 
 Length: 365 days
 
-Tokens: 250,000 MYB released every day
+Tokens: 100,000 MYB released every day
 
 Funding Currency: Ether
 
 ## Guide
 
-The contract keeps track of how much WEI it has receive for a certain 24 hour period. An investor can choose any future day he wishes, or else send Ether into the current day.
+The contract keeps track of how much WEI it has received for a certain 24 hour period. An investor can choose any future day he wishes, or else send Ether into the current days funding period.
 
 To get the current day pass in the current timestamp:
 

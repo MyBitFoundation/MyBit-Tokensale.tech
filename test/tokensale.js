@@ -35,7 +35,7 @@ contract('TokenSale', async (accounts) => {
   const foundationSupply = tokenSupply - circulatingSupply;
   console.log(foundationSupply);
   const tokenPerUser = (circulatingSupply / users.length)*WEI;
-  const totalSaleAmount = bn(25000).times(365);
+  const totalSaleAmount = bn(10000).times(365);
   console.log(totalSaleAmount);
 
 
