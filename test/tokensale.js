@@ -65,8 +65,10 @@ contract('TokenSale', async (accounts) => {
     assert.equal(bn(await token.balanceOf(tokenSale.address)).eq(totalSaleAmount*WEI), true);
   });
 
-  it('Fund', async() => {
+  it('Funding by two users', async() => {
     tx = await tokenSale.fund(0, {from: user1, value: 2*WEI});
+    console.log(tx.logs[0].args);
+    tx = await tokenSale.fund(0, {from: user2, value: 2*WEI});
     console.log(tx.logs[0].args);
     web3.currentProvider.send({
         jsonrpc: "2.0",
@@ -75,20 +77,23 @@ contract('TokenSale', async (accounts) => {
     });
   });
 
+  it('View tokens for contribution', async() => {
+    let tokens = await tokenSale.getTokensForContribution(user2, 0);
+    console.log('Tokens alotted to user2: ', tokens);
+  });
+
   it('Withdraw', async() => {
-    let balanceBefore = await token.balanceOf(user1);
+    let balanceBefore = await token.balanceOf(user2);
     console.log(Number(balanceBefore));
-    tx = await tokenSale.withdraw(0, {from: user1});
+    tx = await tokenSale.withdraw(0, {from: user2});
     console.log(tx.logs[0].args);
-    let balanceAfter = await token.balanceOf(user1);
+    let balanceAfter = await token.balanceOf(user2);
     console.log(Number(balanceAfter));
     assert.equal(bn(balanceAfter).gt(balanceBefore), true);
   });
 
-  it('Fund double', async() => {
+  it('Fund', async() => {
     tx = await tokenSale.fund(1, {from: user1, value: 2*WEI});
-    console.log(tx.logs[0].args);
-    tx = await tokenSale.fund(1, {from: user2, value: 2*WEI});
     console.log(tx.logs[0].args);
     web3.currentProvider.send({
         jsonrpc: "2.0",
@@ -97,10 +102,10 @@ contract('TokenSale', async (accounts) => {
     });
   });
 
-  it('Withdraw', async() => {
+  it('Batch Withdraw', async() => {
     let balanceBefore = await token.balanceOf(user1);
     console.log(Number(balanceBefore));
-    tx = await tokenSale.withdraw(1, {from: user1});
+    tx = await tokenSale.batchWithdraw([0,1], {from: user1});
     console.log(tx.logs[0].args);
     let balanceAfter = await token.balanceOf(user1);
     console.log(Number(balanceAfter));
