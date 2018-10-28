@@ -23,7 +23,7 @@ contract TokenSale {
   ERC20Interface mybToken;
 
   uint public start;
-  uint public tokensPerDay;
+  uint public tokensPerDay = decimals.mul(100000);
 
   mapping (uint16 => Day) public day;
 
@@ -36,11 +36,11 @@ contract TokenSale {
 
   function startSale(uint _totalAmount)
   external
+  onlyOwner
   returns (bool){
     require(msg.sender == owner);
-    // uint totalAmount = tokensPerDay.mul(356);
+    // require(_totalAmount == tokensPerDay.mul(356));
     require(mybToken.transferFrom(msg.sender, address(this), _totalAmount));
-    tokensPerDay = _totalAmount.div(numDays);
     start = now;
     return true;
   }
@@ -50,61 +50,79 @@ contract TokenSale {
   duringSale
   public {
       require(dayFor(now) <= _day);
-      require(msg.value > 0);
       Day storage today = day[_day];
+      today.weiPerToken = today.weiPerToken.add(msg.value.mul(scalingFactor).div(tokensPerDay));
       today.dayIncome = today.dayIncome.add(msg.value);
-      //today.weiPerToken = today.weiPerToken.add(msg.value.mul(scalingFactor).div(tokensPerDay));
-      today.weiPerToken = today.dayIncome.mul(decimals).div(tokensPerDay);
       today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
-      emit LogTokensPurchased(msg.sender, msg.value, _day, today.weiPerToken, today.weiContributed[msg.sender]);
+      emit LogTokensPurchased(msg.sender, msg.value, _day);
   }
 
 
   // @notice Updates claimableTokens, sends all wei to the token holder
   function withdraw(uint16 _day)
-  public
+  external
   returns (bool) {
-      require(dayFinished(_day), 'Day not finished');
-      require(updateclaimableTokens(msg.sender, _day), 'Cannot update claimable tokens');
+      require(dayFinished(_day));
+      require(updateclaimableTokens(msg.sender, _day));
       Day storage thisDay = day[_day];
-      uint _amount = thisDay.claimableTokens[msg.sender];
+      uint _amount = thisDay.claimableTokens[msg.sender].div(scalingFactor);
       delete thisDay.claimableTokens[msg.sender];
-      require(mybToken.transfer(msg.sender, _amount), 'Cannot transfer tokens');
-      emit LogTokensCollected(msg.sender, _amount, _day, thisDay.weiPerToken, thisDay.weiContributed[msg.sender]);
+      require(mybToken.transfer(msg.sender, _amount));
+      emit LogTokensCollected(msg.sender, _amount, _day);
       return true;
   }
 
   // @notice Updates claimableTokens, sends all wei to the token holder
+  // @param (uint16[]) _day, list of token sale days msg.sender contributed wei towards
   function batchWithdraw(uint16[] _day)
-  public
+  external
   returns (bool) {
     uint amount;
-    require(_day.length < 100);
+    require(_day.length < 50);
       for (uint i = 0; i < _day.length; i++){
-        require(dayFinished(_day[i]), 'Day not finished');
-        require(updateclaimableTokens(msg.sender, _day[i]), 'Cannot update claimable tokens');
+        require(dayFinished(_day[i]));
+        require(updateclaimableTokens(msg.sender, _day[i]));
         Day storage thisDay = day[_day[i]];
-        uint amountToAdd = thisDay.claimableTokens[msg.sender];
+        uint amountToAdd = thisDay.claimableTokens[msg.sender].div(scalingFactor);
         amount = amount.add(amountToAdd);
         delete thisDay.claimableTokens[msg.sender];
-        emit LogTokensCollected(msg.sender, amountToAdd, _day[i], thisDay.weiPerToken, thisDay.weiContributed[msg.sender]);
+        emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
       }
       require(mybToken.transfer(msg.sender, amount));
       return true;
   }
 
-  // @notice Calculates how much value _user holds
+  // @notice MyBitFoundation can withdraw raised Ether here
+  // @param (uint) _amount, The amount of wei to withdraw
+  function foundationWithdraw(uint _amount)
+  external
+  onlyOwner
+  returns (bool){
+    owner.transfer(_amount);
+    emit LogFoundationWithdraw(msg.sender, _amount, dayFor(now));
+    return true;
+  }
+
+  // @notice A function to burn tokens in the event that no wei are contributed that day
+  function burnTokens(uint _day)
+  external
+  onlyOwner {
+    uint16 thisDay = dayFor(_day);
+    require(dayFinished(thisDay));
+    require(day[thisDay].dayIncome == 0);  // No WEI contributed that day
+    require(mybToken.burn(tokensPerDay));
+  }
+
+  // @notice Calculates how tokens user gets according ot his contribution - amount already claimed
   function getTokensForContribution(address _user, uint16 _day)
   public
   view
   returns (uint) {
       Day storage thisDay = day[_day];
-      uint tokens = thisDay.weiContributed[_user].mul(decimals).div(thisDay.weiPerToken);
-      //uint weiPerTokenDifference = thisDay.weiPerToken.sub(thisDay.previousWeiPerToken[_user]);
-      //return weiPerTokenDifference.mul(thisDay.weiContributed[_user]);
-      return tokens;
+      uint weiPerTokenDifference = thisDay.weiPerToken.sub(thisDay.previousWeiPerToken[_user]);
+      return weiPerTokenDifference.mul(thisDay.weiContributed[_user]);
   }
-/*
+
   // @notice Calculates how much wei user is owed. (new income + claimableTokens) / 10**32
   function getUnclaimedAmount(address _user, uint16 _day)
   public
@@ -112,15 +130,14 @@ contract TokenSale {
   returns (uint) {
       return (getTokensForContribution(_user, _day).add(day[_day].claimableTokens[_user]).div(scalingFactor));
   }
-*/
+
   // @notice update the amount claimable by this user
   function updateclaimableTokens(address _user, uint16 _day)
   internal
   returns (bool) {
       Day storage thisDay = day[_day];
-      thisDay.claimableTokens[_user] = thisDay.weiContributed[_user].mul(decimals).div(thisDay.weiPerToken);
-      //thisDay.claimableTokens[_user] = thisDay.claimableTokens[_user].add(getTokensForContribution(_user, _day));
-      //thisDay.previousWeiPerToken[_user] = thisDay.weiPerToken;
+      thisDay.claimableTokens[_user] = thisDay.claimableTokens[_user].add(getTokensForContribution(_user, _day));
+      thisDay.previousWeiPerToken[_user] = thisDay.weiPerToken;
       return true;
   }
 
@@ -153,7 +170,14 @@ contract TokenSale {
       revert();
   }
 
-  event LogTokensPurchased(address _contributor, uint _amount, uint16 _day, uint weiPerToken, uint weiContributed);
-  event LogTokensCollected(address _contributor, uint _amount, uint16 _day, uint weiPerToken, uint weiContributed);
+  // @notice only owner address can call
+  modifier onlyOwner {
+    require(msg.sender == owner);
+    _;
+  }
+
+  event LogFoundationWithdraw(address _mybFoundation, uint _amount, uint16 _day);
+  event LogTokensPurchased(address _contributor, uint _amount, uint16 _day);
+  event LogTokensCollected(address _contributor, uint _amount, uint16 _day);
 
 }
