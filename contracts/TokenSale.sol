@@ -7,23 +7,23 @@ import './ERC20Interface.sol';
 contract TokenSale {
   using SafeMath for *;
 
-
-  struct Day {
-    uint weiPerToken;       // // amount of wei received per MYB token
-    uint dayIncome;
-    mapping (address => uint) previousWeiPerToken;
-    mapping (address => uint) weiContributed;
-    mapping (address => uint) claimableTokens;
-  }
-
-  address public owner;
-  uint constant scalingFactor = 1e32;
-  uint constant decimals = 100000000000000000000;
-  uint16 constant numDays = uint16(365);
   ERC20Interface mybToken;
 
-  uint public start;
-  uint public tokensPerDay = decimals.mul(100000);
+  struct Day {
+    uint totalWeiContributed;
+    mapping (address => uint) weiContributed;
+  }
+
+
+  // Constant variables
+  uint constant scalingFactor = 1e32;
+  // uint constant decimals = 100000000000000000000;
+  uint16 constant numDays = uint16(365);
+
+
+  address public owner;
+  uint public start;      // The timestamp when sale starts
+  uint public tokensPerDay;
 
   mapping (uint16 => Day) public day;
 
@@ -31,16 +31,16 @@ contract TokenSale {
   public {
     mybToken = ERC20Interface(_mybToken);
     owner = msg.sender;
-
+    tokensPerDay = uint(10e22);   // 100,000 MYB / day
   }
 
-  function startSale(uint _totalAmount)
+  function startSale()
   external
   onlyOwner
   returns (bool){
-    require(msg.sender == owner);
-    // require(_totalAmount == tokensPerDay.mul(356));
-    require(mybToken.transferFrom(msg.sender, address(this), _totalAmount));
+    require(msg.sender == owner, "only owner can start sale");
+    uint saleAmount = tokensPerDay.mul(numDays);
+    require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = now;
     return true;
   }
@@ -48,27 +48,27 @@ contract TokenSale {
   function fund(uint16 _day)
   payable
   duringSale
-  public {
+  external
+  returns (bool) {
       require(dayFor(now) <= _day);
       Day storage today = day[_day];
-      today.weiPerToken = today.weiPerToken.add(msg.value.mul(scalingFactor).div(tokensPerDay));
-      today.dayIncome = today.dayIncome.add(msg.value);
+      today.totalWeiContributed = today.totalWeiContributed.add(msg.value);
       today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
       emit LogTokensPurchased(msg.sender, msg.value, _day);
+      return true;
   }
 
 
   // @notice Updates claimableTokens, sends all wei to the token holder
   function withdraw(uint16 _day)
-  external
+  public
   returns (bool) {
-      require(dayFinished(_day));
-      require(updateclaimableTokens(msg.sender, _day));
+      require(dayFinished(_day), "day has not finished funding");
       Day storage thisDay = day[_day];
-      uint _amount = thisDay.claimableTokens[msg.sender].div(scalingFactor);
-      delete thisDay.claimableTokens[msg.sender];
-      require(mybToken.transfer(msg.sender, _amount));
-      emit LogTokensCollected(msg.sender, _amount, _day);
+      uint amount = getTokensOwed(msg.sender, _day);
+      delete thisDay.weiContributed[msg.sender];
+      require(mybToken.transfer(msg.sender, amount), "couldnt transfer MYB to investor");
+      emit LogTokensCollected(msg.sender, amount, _day);
       return true;
   }
 
@@ -81,11 +81,10 @@ contract TokenSale {
     require(_day.length < 50);
       for (uint i = 0; i < _day.length; i++){
         require(dayFinished(_day[i]));
-        require(updateclaimableTokens(msg.sender, _day[i]));
         Day storage thisDay = day[_day[i]];
-        uint amountToAdd = thisDay.claimableTokens[msg.sender].div(scalingFactor);
+        uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
         amount = amount.add(amountToAdd);
-        delete thisDay.claimableTokens[msg.sender];
+        delete thisDay.weiContributed[msg.sender];
         emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
       }
       require(mybToken.transfer(msg.sender, amount));
@@ -94,6 +93,7 @@ contract TokenSale {
 
   // @notice MyBitFoundation can withdraw raised Ether here
   // @param (uint) _amount, The amount of wei to withdraw
+  // TODO: send 50% to DDF
   function foundationWithdraw(uint _amount)
   external
   onlyOwner
@@ -109,36 +109,27 @@ contract TokenSale {
   onlyOwner {
     uint16 thisDay = dayFor(_day);
     require(dayFinished(thisDay));
-    require(day[thisDay].dayIncome == 0);  // No WEI contributed that day
+    require(day[thisDay].totalWeiContributed == 0);  // No WEI contributed that day
     require(mybToken.burn(tokensPerDay));
   }
 
-  // @notice Calculates how tokens user gets according ot his contribution - amount already claimed
-  function getTokensForContribution(address _user, uint16 _day)
+
+  // @notice Calculates how many tokens user is owed. (new income + claimableTokens) / 10**32
+  function getTokensOwed(address _user, uint16 _day)
   public
   view
   returns (uint) {
       Day storage thisDay = day[_day];
-      uint weiPerTokenDifference = thisDay.weiPerToken.sub(thisDay.previousWeiPerToken[_user]);
-      return weiPerTokenDifference.mul(thisDay.weiContributed[_user]);
+      uint percentage = thisDay.weiContributed[_user].mul(scalingFactor).div(thisDay.totalWeiContributed);
+      return percentage.mul(tokensPerDay).div(scalingFactor);
+
   }
 
-  // @notice Calculates how much wei user is owed. (new income + claimableTokens) / 10**32
-  function getUnclaimedAmount(address _user, uint16 _day)
+  function getWeiContributed(uint16 _day, address _investor)
   public
   view
   returns (uint) {
-      return (getTokensForContribution(_user, _day).add(day[_day].claimableTokens[_user]).div(scalingFactor));
-  }
-
-  // @notice update the amount claimable by this user
-  function updateclaimableTokens(address _user, uint16 _day)
-  internal
-  returns (bool) {
-      Day storage thisDay = day[_day];
-      thisDay.claimableTokens[_user] = thisDay.claimableTokens[_user].add(getTokensForContribution(_user, _day));
-      thisDay.previousWeiPerToken[_user] = thisDay.weiPerToken;
-      return true;
+    return day[_day].weiContributed[_investor];
   }
 
   // @notice return the day associated with this timestamp
@@ -149,25 +140,33 @@ contract TokenSale {
       return uint16(_timestamp.sub(start).div(24 hours));
   }
 
-  // @notice reverts if the current day is greater than 365
-  modifier duringSale() {
-    require(dayFor(now) < uint16(365) && start > 0);
-    _;
-  }
-
   // @notice returns true if _day is finished
   function dayFinished(uint16 _day)
-  internal
+  public
   view
   returns (bool) {
     require(dayFor(now) > _day);
     return true;
   }
 
+  // @notice return the current day
+  function currentDay()
+  public
+  view
+  returns (uint16) {
+    return dayFor(now);
+  }
+
   // @notice Fallback function: Accepts Ether and updates ledger (issues dividends)
   function ()
   public {
       revert();
+  }
+
+  // @notice reverts if the current day is greater than 365
+  modifier duringSale() {
+    require(dayFor(now) < uint16(365) && start > 0);
+    _;
   }
 
   // @notice only owner address can call
