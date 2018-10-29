@@ -1,15 +1,14 @@
 # MyBit-Tokensale
 
-The contracts handing the tokensale for the MYB token.
+The contracts handing the token-sale for the MYB token.
 
 ## Details
-The contracts release 100,000 MYB tokens everyday. Investors can contribute Ether at any day and they will split the days release of MYB in proportion to the Ether they contributed. Investors can withdraw their purchased MYB the next day.
+The contracts release 100,000 MYB tokens everyday. Investors can contribute Ether at any day and they will split the days release of MYB in proportion to the Ether they contributed. Investors can withdraw their purchased MYB the next day. 50% of the received Ether will go towards the MyBit decentralized development fund, and the other 50% will go towards the MyBit foundation to be used for development.
 
-Length: 365 days
-
-Tokens: 100,000 MYB released every day
-
-Funding Currency: Ether
+* Length: 365 days
+* Tokens: 100,000 MYB released every day
+* Funding Currency: Ether
+* Distribution: 50% DDF, 50% MyBit Foundation
 
 ## Guide
 

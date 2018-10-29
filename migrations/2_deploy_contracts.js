@@ -13,7 +13,7 @@ module.exports = function(deployer, network, accounts) {
   const tokenSupply = 180000000;      // 180 million
   const circulatingSupply = 96000000;
   const foundationSupply = tokenSupply - circulatingSupply;
-  const totalSaleAmount = bn(25000).times(365);
+  const totalSaleAmount = bn(12000000).times(365);
 
   var token, tokensale;
 
@@ -38,11 +38,11 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     tokensale = instance;
-    return token.approve(tokensale.address , totalSaleAmount*WEI);
+    return token.approve(tokensale.address , WEI*WEI);
 
   }).then(function(tx) {
 
-    return tokensale.startSale(totalSaleAmount*WEI);
+    return tokensale.startSale();
 
   }).then(function() {
     var addresses = {
