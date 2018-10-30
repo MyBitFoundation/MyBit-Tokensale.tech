@@ -1,0 +1,28 @@
+{
+  "name": "@mybit/tokensale",
+  "version": "0.0.0",
+  "description": "Token sale contract",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "bignumber.js": "^7.2.1"
+  },
+  "devDependencies": {
+    "truffle-hdwallet-provider": "^0.0.6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeterMPhillips/MyBit-Tokensale.tech.git"
+  },
+  "author": "MyBit",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PeterMPhillips/MyBit-Tokensale.tech/issues"
+  },
+  "homepage": "https://github.com/PeterMPhillips/MyBit-Tokensale.tech#readme"
+}
