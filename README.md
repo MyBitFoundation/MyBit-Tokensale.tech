@@ -27,14 +27,16 @@ To send funds call fund() with the partiuclar day you wish to fund
 ```javascript
 function fund(uint16 _day)
 payable
-duringSale
-public {
-    require(dayFor(now) <= _day);
+duringSale(_day)
+public
+returns (bool) {
+    require(!dayFinished(_day));
+    require(msg.value > 0);
     Day storage today = day[_day];
-    today.weiPerToken = today.weiPerToken.add(msg.value.mul(scalingFactor).div(tokensPerDay));
-    today.dayIncome = today.dayIncome.add(msg.value);
+    today.totalWeiContributed = today.totalWeiContributed.add(msg.value);
     today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
     emit LogTokensPurchased(msg.sender, msg.value, _day);
+    return true;
 }
 ```
 
@@ -43,26 +45,71 @@ To withdraw tokens call withdraw() from the funders account
 function withdraw(uint16 _day)
 public
 returns (bool) {
-    require(dayFinished(_day));
-    require(updateclaimableTokens(msg.sender, _day));
+    require(dayFinished(_day), "day has not finished funding");
     Day storage thisDay = day[_day];
-    uint _amount = thisDay.claimableTokens[msg.sender].div(scalingFactor);
-    delete thisDay.claimableTokens[msg.sender];
-    require(mybToken.transfer(msg.sender, _amount));
-    emit LogTokensCollected(msg.sender, _amount, _day);
+    uint amount = getTokensOwed(msg.sender, _day);
+    delete thisDay.weiContributed[msg.sender];
+    require(mybToken.transfer(msg.sender, amount), "couldnt transfer MYB to contributor");
+    emit LogTokensCollected(msg.sender, amount, _day);
     return true;
 }
 ```
 
-To see an investors current amount of tokens owed on a particular day
+To withdraw tokens from several days call batchWithdraw from the contributors account
 ```javascript
-function getUnclaimedAmount(address _user, uint16 _day)
-public
-view
-returns (uint) {
-    return (getTokensForContribution(_user, _day).add(day[_day].claimableTokens[_user]).div(scalingFactor));
+function batchWithdraw(uint16[] _day)
+external
+returns (bool) {
+  uint amount;
+  require(_day.length <= 50);
+    for (uint i = 0; i < _day.length; i++){
+      require(dayFinished(_day[i]));
+      uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
+      amount = amount.add(amountToAdd);
+      delete day[_day[i]].weiContributed[msg.sender];
+      emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
+    }
+    require(mybToken.transfer(msg.sender, amount));
+    return true;
 }
 ```
+
+To see a contributors current amount of MYB tokens owed:
+```javascript
+function getTokensOwed(address _contributor, uint16 _day)
+public
+view
+returns (uint);
+```
+
+Or to see the total amount for a list of days:
+```javascript
+function getTotalTokensOwed(address _contributor, uint16[] _days)
+public
+view
+returns (uint amount);
+```
+
+You can see the day for a given timestamp using:
+```javascript
+function dayFor(uint _timestamp)
+public
+view
+returns (uint16) {
+    return uint16(_timestamp.sub(start).div(24 hours));
+}
+```
+
+To find the current day call:
+```javascript
+function currentDay()
+public
+view
+returns (uint16) {
+  return dayFor(now);
+}
+```
+
 
 ⚠️ This application is unstable and has not undergone any rigorous security audits. Use at your own risk.
 
