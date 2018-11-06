@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PeterMPhillips/MyBit-Tokensale.tech.git"
+    "url": "git+https://github.com/MyBitFoundation/MyBit-Tokensale.tech"
   },
   "author": "MyBit",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PeterMPhillips/MyBit-Tokensale.tech/issues"
+    "url": "https://github.com/MyBitFoundation/MyBit-Tokensale.tech/issues"
   },
-  "homepage": "https://github.com/PeterMPhillips/MyBit-Tokensale.tech#readme"
+  "homepage": "https://github.com/MyBitFoundation/MyBit-Tokensale.tech#readme"
 }

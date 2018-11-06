@@ -17,6 +17,9 @@ module.exports = function(deployer, network, accounts) {
 
   var token, tokensale;
 
+  const foundation = accounts[1];
+  const ddf = accounts[2];
+
   deployer.then(function(){
 
     return deployer.deploy(SafeMath);
@@ -33,7 +36,7 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     token = instance;
-    return TokenSale.new(token.address);
+    return TokenSale.new(token.address, foundation, ddf);
 
   }).then(function(instance) {
 

@@ -3,7 +3,7 @@ pragma solidity 0.4.24;
 import './SafeMath.sol';
 import './ERC20Interface.sol';
 
-// TODO: add mechanism for situation nobody funds in a day
+
 contract TokenSale {
   using SafeMath for *;
 
@@ -15,42 +15,51 @@ contract TokenSale {
   }
 
 
-  // Constant variables
-  uint constant scalingFactor = 1e32;
-  // uint constant decimals = 100000000000000000000;
-  uint16 constant numDays = uint16(365);
+  // Constants
+  uint constant internal scalingFactor = 1e32;
+  uint16 constant public numDays = uint16(365);
+  uint constant public tokensPerDay = uint(10e22);
 
-
+  // MyBit addresses
   address public owner;
+  address public mybitFoundation;
+  address public developmentFund;
+
   uint public start;      // The timestamp when sale starts
-  uint public tokensPerDay;
 
   mapping (uint16 => Day) public day;
 
-  constructor(address _mybToken)
+  constructor(address _mybToken, address _mybFoundation, address _developmentFund)
   public {
     mybToken = ERC20Interface(_mybToken);
+    developmentFund = _developmentFund;
+    mybitFoundation = _mybFoundation;
     owner = msg.sender;
-    tokensPerDay = uint(10e22);   // 100,000 MYB / day
   }
 
+  // @notice owner can start the sale by transferring in required amount of MYB
+  // @dev the start time is used to determine which day the sale is on (day 0 = first day)
   function startSale()
   external
   onlyOwner
   returns (bool){
-    require(msg.sender == owner, "only owner can start sale");
+    require(start == 0);
     uint saleAmount = tokensPerDay.mul(numDays);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = now;
+    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
     return true;
   }
 
+  // @notice contributor can contribute wei to sale on any current/future _day
+  // @dev only accepts contributions between days 0 - 365
   function fund(uint16 _day)
   payable
-  duringSale
-  external
+  duringSale(_day)
+  public
   returns (bool) {
-      require(dayFor(now) <= _day);
+      require(!dayFinished(_day));
+      require(msg.value > 0);
       Day storage today = day[_day];
       today.totalWeiContributed = today.totalWeiContributed.add(msg.value);
       today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
@@ -67,69 +76,72 @@ contract TokenSale {
       Day storage thisDay = day[_day];
       uint amount = getTokensOwed(msg.sender, _day);
       delete thisDay.weiContributed[msg.sender];
-      require(mybToken.transfer(msg.sender, amount), "couldnt transfer MYB to investor");
+      require(mybToken.transfer(msg.sender, amount), "couldnt transfer MYB to contributor");
       emit LogTokensCollected(msg.sender, amount, _day);
       return true;
   }
 
-  // @notice Updates claimableTokens, sends all wei to the token holder
+  // @notice Updates claimableTokens, sends all tokens to contributor from previous days
   // @param (uint16[]) _day, list of token sale days msg.sender contributed wei towards
   function batchWithdraw(uint16[] _day)
   external
   returns (bool) {
     uint amount;
-    require(_day.length < 50);
+    require(_day.length <= 50);
       for (uint i = 0; i < _day.length; i++){
         require(dayFinished(_day[i]));
-        Day storage thisDay = day[_day[i]];
         uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
         amount = amount.add(amountToAdd);
-        delete thisDay.weiContributed[msg.sender];
+        delete day[_day[i]].weiContributed[msg.sender];
         emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
       }
       require(mybToken.transfer(msg.sender, amount));
       return true;
   }
 
-  // @notice MyBitFoundation can withdraw raised Ether here
+  // @notice owner can withdraw funds to the foundation wallet and ddf wallet
   // @param (uint) _amount, The amount of wei to withdraw
-  // TODO: send 50% to DDF
   function foundationWithdraw(uint _amount)
   external
   onlyOwner
   returns (bool){
-    owner.transfer(_amount);
+    uint half = _amount.div(2);
+    assert (half.mul(2) == _amount);
+    mybitFoundation.transfer(half);
+    developmentFund.transfer(half);
     emit LogFoundationWithdraw(msg.sender, _amount, dayFor(now));
     return true;
   }
 
-  // @notice A function to burn tokens in the event that no wei are contributed that day
-  function burnTokens(uint _day)
-  external
-  onlyOwner {
-    uint16 thisDay = dayFor(_day);
-    require(dayFinished(thisDay));
-    require(day[thisDay].totalWeiContributed == 0);  // No WEI contributed that day
-    require(mybToken.burn(tokensPerDay));
-  }
-
 
   // @notice Calculates how many tokens user is owed. (new income + claimableTokens) / 10**32
-  function getTokensOwed(address _user, uint16 _day)
+  function getTokensOwed(address _contributor, uint16 _day)
   public
   view
   returns (uint) {
       Day storage thisDay = day[_day];
-      uint percentage = thisDay.weiContributed[_user].mul(scalingFactor).div(thisDay.totalWeiContributed);
+      uint percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
       return percentage.mul(tokensPerDay).div(scalingFactor);
 
   }
 
-  function getWeiContributed(uint16 _day, address _investor)
+  // @notice gets the total amount of mybit owed to the contributor
+  function getTotalTokensOwed(address _contributor, uint16[] _days)
+  public
+  view
+  returns (uint amount) {
+    for (uint i = 0; i < _days.length; i++){
+      amount = amount.add(getTokensOwed(_contributor, _days[i]));
+    }
+    return amount;
+  }
+
+  // @notice returns the amount of wei contributed by _contributor on _day
+  function getWeiContributed(uint16 _day, address _contributor)
   public
   view
   returns (uint) {
-    return day[_day].weiContributed[_investor];
+    return day[_day].weiContributed[_contributor];
   }
 
   // @notice return the day associated with this timestamp
@@ -145,8 +157,7 @@ contract TokenSale {
   public
   view
   returns (bool) {
-    require(dayFor(now) > _day);
-    return true;
+    return dayFor(now) > _day;
   }
 
   // @notice return the current day
@@ -157,15 +168,16 @@ contract TokenSale {
     return dayFor(now);
   }
 
-  // @notice Fallback function: Accepts Ether and updates ledger (issues dividends)
+  // @notice Fallback function: Purchases contributor stake in the tokens for the current day
   function ()
-  public {
-      revert();
+  public
+  payable {
+      require(fund(dayFor(now)));
   }
 
-  // @notice reverts if the current day is greater than 365
-  modifier duringSale() {
-    require(dayFor(now) < uint16(365) && start > 0);
+  // @notice reverts if the current day isn't less than 365
+  modifier duringSale(uint16 _day) {
+    require(start > 0 && _day < uint16(365));
     _;
   }
 
@@ -175,6 +187,7 @@ contract TokenSale {
     _;
   }
 
+  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB);
   event LogFoundationWithdraw(address _mybFoundation, uint _amount, uint16 _day);
   event LogTokensPurchased(address _contributor, uint _amount, uint16 _day);
   event LogTokensCollected(address _contributor, uint _amount, uint16 _day);
