@@ -4,6 +4,15 @@ var bn = require('bignumber.js');
 const Token = artifacts.require("./ERC20.sol");
 const TokenSale = artifacts.require("./TokenSale.sol");
 
+async function rejects (promise) {
+  let err;
+  try {
+    await promise;
+  } catch (e) {
+    err = e;
+  }
+  assert.notEqual(err, null);
+}
 
 contract('TokenSale', async (accounts) => {
   const owner = web3.eth.accounts[0];
@@ -14,10 +23,11 @@ contract('TokenSale', async (accounts) => {
   const user5 = web3.eth.accounts[5];
   const user6 = web3.eth.accounts[6];
   const user7 = web3.eth.accounts[7];
-  const user8 = web3.eth.accounts[8];
-  const user9 = web3.eth.accounts[9];
 
-  const users = [user1, user2, user3, user4, user5, user6, user7, user8, user9];
+  const ddf = web3.eth.accounts[8];
+  const foundation = web3.eth.accounts[9];
+
+  const users = [user1, user2, user3, user4, user5, user6, user7];
 
   let token;
   let tokenSale;
@@ -44,19 +54,29 @@ contract('TokenSale', async (accounts) => {
   it('Deploy MYB token', async() => {
     token = await Token.new(tokenSupply*WEI, "MyBit", 18, "MYB");
   });
-/*
-  it('Spread tokens to users', async() => {
-    for (let i = 0; i < users.length; i++){
-      await token.transfer(users[i], tokenPerUser);
-      assert.equal(await token.balanceOf(users[i]), tokenPerUser);
-    }
-  });
-*/
-  it('Deploy and start TokenSale contract', async() => {
-    tokenSale = await TokenSale.new(token.address);
+
+  it('Deploy TokenSale contract', async() => {
+    tokenSale = await TokenSale.new(token.address, foundation, ddf);
     assert.equal(await tokenSale.start(), 0);
     assert.equal(await tokenSale.owner(), owner);
-  })
+  });
+
+  it('Try to start sale from non-owner account', async() => {
+    await token.transfer(user1, totalSaleAmount*WEI);
+    await token.approve(tokenSale.address, totalSaleAmount*WEI, {from: user1})
+    await rejects(tokenSale.startSale({from: user1}));
+    await token.transfer(owner, totalSaleAmount*WEI, {from: user1});
+  });
+
+  it('Start token sale with not enough MYB', async() => {
+    await rejects(tokenSale.startSale());
+  });
+
+  it('Try funding before sale', async() => {
+    await rejects(tokenSale.fund(0, {from: user1, value: 2*WEI}));
+  });
+
+  // ------------Day 0----------------
 
   it('Start token sale', async() => {
     assert.equal(await token.balanceOf(tokenSale.address), 0);
@@ -67,6 +87,17 @@ contract('TokenSale', async (accounts) => {
     console.log("tokens per day: ", tokensPerDay);
     assert.notEqual(await tokenSale.start(), 0);
     assert.equal(bn(await token.balanceOf(tokenSale.address)).eq(totalSaleAmount*WEI), true);
+  });
+
+
+  it('Try starting sale again', async() => {
+    assert.equal(bn(await token.balanceOf(owner)).gt(totalSaleAmount*WEI), true);
+    await token.approve(tokenSale.address, totalSaleAmount*WEI);
+    await rejects(tokenSale.startSale());
+  });
+
+  it('Try funding with no WEI', async() => {
+    await rejects(tokenSale.fund(0, {from: user1}));
   });
 
   it('Funding by two users', async() => {
@@ -82,20 +113,28 @@ contract('TokenSale', async (accounts) => {
     assert.equal(await tokenSale.currentDay(), 1);
   });
 
+  // ------------ Day 1 ------------
+
+  it('Try funding previous day', async() => {
+    await rejects(tokenSale.fund(0, {from: user3, value: 2*WEI}));
+  });
+
   it('Withdraw day 0, user2', async() => {
     let amountToReceive = await tokenSale.getTokensOwed(user2, 0);
     let shouldReceive = tokensPerDay / 2;
     assert.equal(shouldReceive, amountToReceive);
-
     tx = await tokenSale.withdraw(0, {from: user2});
     let balanceAfter = await token.balanceOf(user2);
     assert.equal(bn(balanceAfter).eq(amountToReceive), true);
+    assert.equal(await tokenSale.getWeiContributed(0, user2), 0);
   });
 
-  it('Fund', async() => {
+  it('Fund day 1 by two users', async() => {
     let fundAmount = 2*WEI;
     tx = await tokenSale.fund(1, {from: user1, value: 2*WEI});
+    tx = await tokenSale.fund(1, {from:user2, value: 2*WEI});
     assert.equal(bn(fundAmount).eq(await tokenSale.getWeiContributed(1, user1)), true);
+    assert.equal(bn(fundAmount).eq(await tokenSale.getWeiContributed(1, user2)), true);
     assert.equal(await tokenSale.currentDay(), 1);
     web3.currentProvider.send({
         jsonrpc: "2.0",
@@ -105,32 +144,149 @@ contract('TokenSale', async (accounts) => {
     assert.equal(await tokenSale.currentDay(), 2);
   });
 
+  // ------------ Day 2 ------------
+
+  it('Withdraw day 1, user2', async() => {
+    let amountToReceive = await tokenSale.getTokensOwed(user2, 1);
+    let balanceBefore = await token.balanceOf(user2);
+    let shouldReceive = tokensPerDay / 2;
+    console.log("amount to receive" , amountToReceive);
+    console.log("should receive : ", shouldReceive);
+    assert.equal(shouldReceive, amountToReceive);
+    tx = await tokenSale.withdraw(1, {from: user2});
+    let balanceDiff = bn(await token.balanceOf(user2)).minus(balanceBefore);
+    assert.equal(balanceDiff.eq(amountToReceive), true);
+  });
+
   it('Batch Withdraw user1', async() => {
     let days = [0, 1];
-    let expectedTokens = bn(tokensPerDay).plus(tokensPerDay / 2);
+    let expectedTokens = bn(tokensPerDay);
     let day0Tokens = await tokenSale.getTokensOwed(user1, 0);
     let day1Tokens = await tokenSale.getTokensOwed(user1, 1);
     let tokensToReceive = bn(day0Tokens).plus(day1Tokens);
-    console.log("expectedTokens: ", expectedTokens);
-    console.log("tokens to be received : ", tokensToReceive);
     assert.equal(bn(expectedTokens).eq(tokensToReceive), true);
     tx = await tokenSale.batchWithdraw(days, {from: user1});
     let balanceAfter = await token.balanceOf(user1);
-    console.log("balance after: ", balanceAfter);
-    console.log("tokensToReceive: ", tokensToReceive);
     assert.equal(bn(tokensToReceive).eq(balanceAfter), true);
     let totalBalance = bn(await token.balanceOf(user1)).plus(await token.balanceOf(user2));
-    console.log("user1 balance ", await token.balanceOf(user1));
-    console.log("user2 balance ", await token.balanceOf(user2));
-    console.log("total balance of user1 and user2: ", totalBalance);
-    console.log("200000 tokens: " , tokensPerDay*2);
     assert.equal(bn(totalBalance).eq(tokensPerDay*2), true);
   });
 
-  it('Foundation withdraws tokens', async() => {
+  it("batch withdraw again and receive 0 wei", async() => {
+    assert.equal(await tokenSale.getTokensOwed(user1, 0), 0);
+    assert.equal(await tokenSale.getTokensOwed(user1, 1), 0);
+    let balanceBefore = await token.balanceOf(user1);
+    await tokenSale.batchWithdraw([0,1], {from: user1});
+    assert.equal(bn(await token.balanceOf(user1)).eq(balanceBefore), true);
+  })
+
+  it("Try to withdraw from non-owner account", async() => {
+    await rejects(tokenSale.foundationWithdraw(web3.eth.getBalance(tokenSale.address), {from: user1}));
+  })
+
+  it("Try to withdraw more wei than contract holds", async() => {
+    await rejects(tokenSale.foundationWithdraw(web3.eth.getBalance(tokenSale.address)+1));
+  })
+
+  it('Owner withdraws tokens for foundation + ddf', async() => {
     let weiInContract = web3.eth.getBalance(tokenSale.address);
-    console.log("weiInContract ", weiInContract);
+    let foundationBalance = web3.eth.getBalance(foundation);
+    let ddfBalance = web3.eth.getBalance(ddf);
     await tokenSale.foundationWithdraw(weiInContract);
-    assert.equal(web3.eth.getBalance(tokenSale.address), 0); 
+
+    let foundationBalanceDiff = bn(web3.eth.getBalance(foundation)).minus(foundationBalance);
+    let ddfBalanceDiff = bn(web3.eth.getBalance(ddf)).minus(ddfBalance);
+    assert.equal(web3.eth.getBalance(tokenSale.address), 0);
+    assert.equal(foundationBalanceDiff, weiInContract / 2)
+    assert.equal(ddfBalanceDiff, weiInContract / 2);
   });
+
+  it("Try to fund for days outside sale", async() => {
+    await rejects(tokenSale.fund(365, {from: user3, value: 1}));
+  });
+
+  it("Fund with 1 wei for day 3 and day 4" , async() => {
+    assert.equal(await tokenSale.currentDay(), 2);
+    await tokenSale.fund(3, {from: user3, value:1});
+    await tokenSale.fund(4, {from: user3, value:1});
+  });
+
+  it("Try to withdraw from future day", async() => {
+    assert.equal(await tokenSale.currentDay(), 2);
+    await rejects(tokenSale.withdraw(3, {from: user3}));
+  });
+
+  it("Try to batch withdraw from future days", async() => {
+    assert.equal(await tokenSale.currentDay(), 2);
+    await rejects(tokenSale.batchWithdraw([3,4], {from: user3}));
+  });
+
+  it("Move to day 5 (from 2)", async() => {
+    assert.equal(await tokenSale.currentDay(), 2);
+    web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [86401 * 3],
+        id: 0
+    });
+    assert.equal(await tokenSale.currentDay(), 5);
+  })
+
+  //---------------------Day 5-------------------
+
+  it("Batch withdraw user3", async() => {
+    let balanceBefore = await token.balanceOf(user3);
+    let mybOwed = await tokenSale.getTotalTokensOwed(user3, [3,4]);
+    assert.equal(bn(mybOwed).eq(tokensPerDay*2), true);
+    console.log("mybit owed to user 3: ", mybOwed);
+    await tokenSale.batchWithdraw([3,4], {from: user3});
+    let balanceDiff = bn(await token.balanceOf(user3)).minus(balanceBefore);
+    assert.equal(balanceDiff.eq(mybOwed), true);
+  });
+
+  it('fund currentDay (5) with user3', async() => {
+    assert.equal(await tokenSale.currentDay(), 5);
+    await tokenSale.fund(5, {from: user3, value: 13});
+    assert.equal(bn(await tokenSale.getTokensOwed(user3, 5)).eq(tokensPerDay), true);
+  });
+
+  it('Try to withdraw from the current day', async() => {
+    await rejects(tokenSale.withdraw(5, {from: user3}));
+  })
+
+
+  let batchWithdrawDays = [];
+  it('Fund 65 days in the future  from user3)', async() => {
+    for (let i = 6; i < 71; i++){
+      await tokenSale.fund(i, {from: user3, value: 1});
+      batchWithdrawDays.push(i);
+    }
+  })
+
+  it("Move to day 71 (from 5)", async() => {
+    assert.equal(await tokenSale.currentDay(), 5);
+    web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [86401 * 66],
+        id: 0
+    });
+    assert.equal(await tokenSale.currentDay(), 71);
+  })
+
+  it("batch withdraw 50 days from user3", async() => {
+    let maxWithdrawDays = batchWithdrawDays.slice(0,50);
+    let balanceBefore = await token.balanceOf(user3);
+    let mybOwed = await tokenSale.getTotalTokensOwed(user3, maxWithdrawDays);
+    let mybOwedCheck = bn(tokensPerDay).times(50);
+    assert.equal(bn(maxWithdrawDays.length).eq(50), true);
+    assert.equal(bn(mybOwed).eq(mybOwedCheck), true);
+    console.log("mybit owed to user 3: ", mybOwed);
+    await tokenSale.batchWithdraw(maxWithdrawDays, {from: user3});
+    let balanceDiff = bn(await token.balanceOf(user3)).minus(balanceBefore);
+    assert.equal(balanceDiff.eq(mybOwed), true);
+  })
+
+  // --------------Day 71------------------
+
 });

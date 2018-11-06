@@ -37,12 +37,4 @@ library SafeMath {
     return c;
   }
 
-  // @notice Returns fractional amount
-  function getFractionalAmount(uint256 _amount, uint256 _percentage)
-  internal
-  pure
-  returns (uint256) {
-    return div(mul(_amount, _percentage), 100);
-  }
-
 }
