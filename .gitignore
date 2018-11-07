@@ -2,3 +2,8 @@ mnemonic.json
 truffle-ropsten.js
 node_modules
 TokenSaleFlattened.sol
+flattener
+flattened
+verify_contracts.py
+addresses.json
+accounts.json
