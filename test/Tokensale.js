@@ -263,7 +263,6 @@ contract('TokenSale', async (accounts) => {
     assert.equal(bn(batchWithdrawDays.length).eq(50), true);
   });
 
-  it
 
   it('Fail to batch fund (no payment)', async() => {
     await rejects(tokenSale.batchFund(batchWithdrawDays, {from:user3, value: 0}));
@@ -306,7 +305,8 @@ contract('TokenSale', async (accounts) => {
   });
 
   it("Fail to batch withdraw (too many days)", async() => {
-    batchWithdrawDays.push(57);
+    batchWithdrawDays.push(52);
+    console.log("batch withdraw days is length ", batchWithdrawDays.length);
     await rejects(tokenSale.batchWithdraw(batchWithdrawDays, {from:user3}));
     batchWithdrawDays = batchWithdrawDays.slice(0,50);
   })
@@ -326,18 +326,24 @@ contract('TokenSale', async (accounts) => {
   // --------------Day 57------------------
 
   it("Pay directly", async() => {
+    assert.equal(await tokenSale.currentDay(), 57);
+    let contributions = await tokenSale.getTotalWeiContributed(57);
+    assert.equal(0, contributions);
     await web3.eth.sendTransaction({from:user4, to:tokenSale.address, value:1});
+    assert.equal(bn(await tokenSale.getTokensOwed(user4, 57)).eq(tokensPerDay), true);
+    assert.equal(bn(await tokenSale.getTotalWeiContributed(57)).eq(1), true);
+    console.log("user payed directly amount wei: ", await tokenSale.getWeiContributed(57, user4)); 
   });
 
-  it("Move to day 366 (from 57)", async() => {
+  it("Move to day 365 (from 57)", async() => {
     assert.equal(await tokenSale.currentDay(), 57);
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
-        params: [86400 * 309],
+        params: [86400 * 308],
         id: 0
     });
-    assert.equal(await tokenSale.currentDay(), 366);
+    assert.equal(await tokenSale.currentDay(), 365);
   });
 
   // --------------Day 366------------------
