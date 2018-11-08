@@ -1,0 +1,70 @@
+Arguments: 
+  /home/dog/.nvm/versions/node/v8.12.0/bin/node /usr/share/yarn/bin/yarn.js
+
+PATH: 
+  /home/dog/.nvm/versions/node/v8.12.0/bin:/home/dog/bin:/home/dog/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+Yarn version: 
+  1.12.1
+
+Node version: 
+  8.12.0
+
+Platform: 
+  linux x64
+
+Trace: 
+  SyntaxError: /home/dog/code/mybit/tokensale/package.json: Unexpected token } in JSON at position 793
+      at JSON.parse (<anonymous>)
+      at /usr/share/yarn/lib/cli.js:1166:59
+      at Generator.next (<anonymous>)
+      at step (/usr/share/yarn/lib/cli.js:92:30)
+      at /usr/share/yarn/lib/cli.js:103:13
+      at <anonymous>
+
+npm manifest: 
+  {
+    "name": "@mybit/tokensale",
+    "version": "0.0.1",
+    "description": "Token sale contract",
+    "main": "truffle.js",
+    "directories": {
+      "test": "test"
+    },
+    "dependencies": {
+      "bignumber.js": "^7.2.1",
+      "coveralls": "^3.0.2",
+      "ganache-cli": "^6.1.0",
+      "request": "^2.87.0",
+      "solc": "^0.4.25",
+      "solidity-docgen": "^0.1.0",
+      "truffle": "^4.1.14"
+    },
+    "devDependencies": {
+      "truffle-hdwallet-provider": "0.0.6",
+      "solidity-coverage": "^0.5.11"
+    },
+    "scripts": {
+      "compile": "truffle compile --all",
+      "migrate": "truffle migrate",
+      "test": "npm run compile; npm run migrate; truffle test",
+      "coverage": "solidity-coverage && sleep 5 && npm run coveralls",
+      "coveralls": "cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/MyBitFoundation/MyBit-Tokensale.tech"
+    },
+    "author": "MyBit",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/MyBitFoundation/MyBit-Tokensale.tech/issues"
+    },
+    "homepage": "https://github.com/MyBitFoundation/MyBit-Tokensale.tech#readme"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
