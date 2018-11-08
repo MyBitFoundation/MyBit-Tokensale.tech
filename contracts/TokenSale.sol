@@ -113,7 +113,7 @@ contract TokenSale {
   returns (bool) {
     uint amount;
     require(_day.length <= 50);
-    for (uint i = 0; i < _day.length; i++){
+    for (uint8 i = 0; i < _day.length; i++){
       require(dayFinished(_day[i]));
       uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
       amount = amount.add(amountToAdd);
@@ -155,7 +155,7 @@ contract TokenSale {
   public
   view
   returns (uint amount) {
-    for (uint i = 0; i < _days.length; i++){
+    for (uint8 i = 0; i < _days.length; i++){
       amount = amount.add(getTokensOwed(_contributor, _days[i]));
     }
     return amount;
@@ -167,6 +167,13 @@ contract TokenSale {
   view
   returns (uint) {
     return day[_day].weiContributed[_contributor];
+  }
+
+  function getTotalWeiContributed(uint16 _day)
+  public
+  view
+  returns (uint) {
+    return day[_day].totalWeiContributed;
   }
 
   // @notice return the day associated with this timestamp
