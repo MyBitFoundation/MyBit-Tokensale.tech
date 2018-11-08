@@ -11,11 +11,6 @@
  *     gasPrice: 10000000000,
  *   },
  */
- var HDWalletProvider = require("truffle-hdwallet-provider");
- var fs = require('fs');
- var json = JSON.parse(fs.readFileSync('mnemonic.json', 'utf8'));
- var mnemonic = json.mnemonic;
- var portal = json.portal;
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -30,7 +25,12 @@ module.exports = {
     },
     ropsten: {
       provider: function() {
-       return new HDWalletProvider(mnemonic, portal)
+        var HDWalletProvider = require("truffle-hdwallet-provider");
+        var fs = require('fs');
+        var json = JSON.parse(fs.readFileSync('mnemonic.json', 'utf8'));
+        var mnemonic = json.mnemonic;
+        var portal = json.portal;
+        return new HDWalletProvider(mnemonic, portal)
       },
       network_id: 3,
       gas: 6500000,
