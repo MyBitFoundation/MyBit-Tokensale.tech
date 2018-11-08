@@ -6,7 +6,7 @@
 
 # MyBit-Tokensale
 
-[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale.tech/badge.svg)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale.tech)
+[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale/badge.svg)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale)
 
 The contracts handing the token-sale for the MYB token.
 
