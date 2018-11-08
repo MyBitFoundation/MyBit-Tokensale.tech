@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "truffle-hdwallet-provider": "0.0.6",
-    "solidity-coverage": "^0.5.11"
+    "solidity-coverage": "0.5.11"
   },
   "scripts": {
     "compile": "truffle compile --all",
