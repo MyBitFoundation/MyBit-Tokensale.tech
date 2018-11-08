@@ -11,7 +11,7 @@ async function rejects (promise) {
   } catch (e) {
     err = e;
   }
-  assert.notEqual(err, null);
+  assert.notEqual(err, undefined);
 }
 
 contract('TokenSale', async (accounts) => {
@@ -254,39 +254,102 @@ contract('TokenSale', async (accounts) => {
     await rejects(tokenSale.withdraw(5, {from: user3}));
   })
 
-
   let batchWithdrawDays = [];
-  it('Fund 65 days in the future  from user3)', async() => {
-    for (let i = 6; i < 71; i++){
-      await tokenSale.fund(i, {from: user3, value: 1});
+  it('Set up batch days)', async() => {
+    for (let i = 6; i < 56; i++){
+      //await tokenSale.fund(i, {from: user3, value: 1});
       batchWithdrawDays.push(i);
     }
-  })
+    assert.equal(bn(batchWithdrawDays.length).eq(50), true);
+  });
 
-  it("Move to day 71 (from 5)", async() => {
+  it
+
+  it('Fail to batch fund (no payment)', async() => {
+    await rejects(tokenSale.batchFund(batchWithdrawDays, {from:user3, value: 0}));
+  });
+
+  it("Move to day 7 (from 5)", async() => {
     assert.equal(await tokenSale.currentDay(), 5);
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
-        params: [86401 * 66],
+        params: [86400*2],
         id: 0
     });
-    assert.equal(await tokenSale.currentDay(), 71);
+    assert.equal(await tokenSale.currentDay(), 7);
+  })
+
+  it('Fail to batch fund (first day passed)', async() => {
+    await rejects(tokenSale.batchFund(batchWithdrawDays, {from:user3, value: batchWithdrawDays.length}));
+  });
+
+  it('Fail to batch fund (too many days)', async() => {
+    batchWithdrawDays.push(56);
+    await rejects(tokenSale.batchFund(batchWithdrawDays, {from:user3, value: batchWithdrawDays.length}));
+    batchWithdrawDays = batchWithdrawDays.slice(1,51);
+  });
+
+  it('Fund 50 days in the future', async() => {
+    await tokenSale.batchFund(batchWithdrawDays, {from:user3, value: batchWithdrawDays.length});
+  });
+
+  it("Move to day 57 (from 7)", async() => {
+    assert.equal(await tokenSale.currentDay(), 7);
+    web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [86400 * 50],
+        id: 0
+    });
+    assert.equal(await tokenSale.currentDay(), 57);
+  });
+
+  it("Fail to batch withdraw (too many days)", async() => {
+    batchWithdrawDays.push(57);
+    await rejects(tokenSale.batchWithdraw(batchWithdrawDays, {from:user3}));
+    batchWithdrawDays = batchWithdrawDays.slice(0,50);
   })
 
   it("batch withdraw 50 days from user3", async() => {
-    let maxWithdrawDays = batchWithdrawDays.slice(0,50);
     let balanceBefore = await token.balanceOf(user3);
-    let mybOwed = await tokenSale.getTotalTokensOwed(user3, maxWithdrawDays);
+    let mybOwed = await tokenSale.getTotalTokensOwed(user3, batchWithdrawDays);
     let mybOwedCheck = bn(tokensPerDay).times(50);
-    assert.equal(bn(maxWithdrawDays.length).eq(50), true);
+    assert.equal(bn(batchWithdrawDays.length).eq(50), true);
     assert.equal(bn(mybOwed).eq(mybOwedCheck), true);
     console.log("mybit owed to user 3: ", mybOwed);
-    await tokenSale.batchWithdraw(maxWithdrawDays, {from: user3});
+    await tokenSale.batchWithdraw(batchWithdrawDays, {from: user3});
     let balanceDiff = bn(await token.balanceOf(user3)).minus(balanceBefore);
     assert.equal(balanceDiff.eq(mybOwed), true);
   })
 
-  // --------------Day 71------------------
+  // --------------Day 57------------------
 
+  it("Pay directly", async() => {
+    await web3.eth.sendTransaction({from:user4, to:tokenSale.address, value:1});
+  });
+
+  it("Move to day 366 (from 57)", async() => {
+    assert.equal(await tokenSale.currentDay(), 57);
+    web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [86400 * 309],
+        id: 0
+    });
+    assert.equal(await tokenSale.currentDay(), 366);
+  });
+
+  // --------------Day 366------------------
+
+  it("Fail to pay directly (past tokensale)", async() => {
+    let err;
+    try{
+      await web3.eth.sendTransaction({from:user4, to:tokenSale.address, value:1});
+    } catch(e){
+      err = e;
+      //console.log(e);
+    }
+    assert.notEqual(err, undefined);
+  });
 });

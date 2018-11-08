@@ -1,4 +1,9 @@
 {
+<<<<<<< HEAD
     "MyBit": "0xa5761bd6d4fb40a299da2c5941eb59b3aa183ef1",
     "TokenSale": "0x25045ef292a047b117c82d450bef13eef8eb166f"
+=======
+    "MyBit": "0xa5029585f8a40ff13ca12155c71e777a00dcd691",
+    "TokenSale": "0x355f23ad5da078128994c790343447e50152b0b0"
+>>>>>>> MyBitFoundation-master
 }

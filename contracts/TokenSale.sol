@@ -67,10 +67,35 @@ contract TokenSale {
       return true;
   }
 
+  // @notice Send an index of days and your payment will be divided equally among them
+  function batchFund(uint16[] _day)
+  payable
+  external
+  returns (bool) {
+    require(_day.length <= 50);
+    require(msg.value > 0);
+    uint amountPerDay = msg.value.div(_day.length);
+    uint total;
+    for (uint i = 0; i < _day.length; i++){
+      require(!dayFinished(_day[i]));
+      Day storage today = day[_day[i]];
+      if(i == _day.length-1){
+        amountPerDay = msg.value.sub(total); //Last day just spends the remainder of ether, to avoid rounding errors
+      } else {
+        total += amountPerDay;
+      }
+      today.totalWeiContributed = today.totalWeiContributed.add(amountPerDay);
+      today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(amountPerDay);
+      emit LogTokensPurchased(msg.sender, amountPerDay, _day[i]);
+
+    }
+    return true;
+  }
+
 
   // @notice Updates claimableTokens, sends all wei to the token holder
   function withdraw(uint16 _day)
-  public
+  external
   returns (bool) {
       require(dayFinished(_day), "day has not finished funding");
       Day storage thisDay = day[_day];
@@ -88,15 +113,15 @@ contract TokenSale {
   returns (bool) {
     uint amount;
     require(_day.length <= 50);
-      for (uint i = 0; i < _day.length; i++){
-        require(dayFinished(_day[i]));
-        uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
-        amount = amount.add(amountToAdd);
-        delete day[_day[i]].weiContributed[msg.sender];
-        emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
-      }
-      require(mybToken.transfer(msg.sender, amount));
-      return true;
+    for (uint i = 0; i < _day.length; i++){
+      require(dayFinished(_day[i]));
+      uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
+      amount = amount.add(amountToAdd);
+      delete day[_day[i]].weiContributed[msg.sender];
+      emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
+    }
+    require(mybToken.transfer(msg.sender, amount));
+    return true;
   }
 
   // @notice owner can withdraw funds to the foundation wallet and ddf wallet
@@ -172,7 +197,7 @@ contract TokenSale {
   function ()
   public
   payable {
-      require(fund(dayFor(now)));
+      require(fund(currentDay()));
   }
 
   // @notice reverts if the current day isn't less than 365
