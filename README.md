@@ -1,4 +1,12 @@
+<p align="center">
+  <a href="https://mybit.io/">
+    <img alt="MyBit Logo" src="https://files.mybit.io/favicons/favicon-96x96.png" width="90">
+  </a>
+</p>
+
 # MyBit-Tokensale
+
+[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale.tech/badge.svg)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale.tech)
 
 The contracts handing the token-sale for the MYB token.
 
