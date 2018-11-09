@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
 import './SafeMath.sol';
 import './ERC20Interface.sol';
@@ -82,7 +82,7 @@ contract TokenSale {
       if(i == _day.length-1){
         amountPerDay = msg.value.sub(total); //Last day just spends the remainder of ether, to avoid rounding errors
       } else {
-        total += amountPerDay;
+        total = total.add(amountPerDay);
       }
       today.totalWeiContributed = today.totalWeiContributed.add(amountPerDay);
       today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(amountPerDay);
