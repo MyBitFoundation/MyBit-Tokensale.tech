@@ -16,8 +16,7 @@ contract TokenSale {
 
 
   // Constants
-  uint constant internal scalingFactor = 1e32;
-  uint16 constant public numDays = uint16(365);
+  uint constant internal scalingFactor = 10e32;
   uint constant public tokensPerDay = uint(10e22);
 
   // MyBit addresses
@@ -44,7 +43,7 @@ contract TokenSale {
   onlyOwner
   returns (bool){
     require(start == 0);
-    uint saleAmount = tokensPerDay.mul(numDays);
+    uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = now;
     emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
@@ -55,39 +54,24 @@ contract TokenSale {
   // @dev only accepts contributions between days 0 - 365
   function fund(uint16 _day)
   payable
-  duringSale(_day)
   public
   returns (bool) {
-      require(!dayFinished(_day));
-      require(msg.value > 0);
-      Day storage today = day[_day];
-      today.totalWeiContributed = today.totalWeiContributed.add(msg.value);
-      today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
-      emit LogTokensPurchased(msg.sender, msg.value, _day);
+      require(addContribution(msg.sender, msg.value, _day));
       return true;
   }
 
   // @notice Send an index of days and your payment will be divided equally among them
+  // @dev WEI sent must divide equally into number of days.
   function batchFund(uint16[] _day)
   payable
   external
   returns (bool) {
     require(_day.length <= 50);
-    require(msg.value > 0);
+    require(msg.value >= _day.length);   // need at least 1 wei per day
     uint amountPerDay = msg.value.div(_day.length);
-    uint total;
-    for (uint i = 0; i < _day.length; i++){
-      require(!dayFinished(_day[i]));
-      Day storage today = day[_day[i]];
-      if(i == _day.length-1){
-        amountPerDay = msg.value.sub(total); //Last day just spends the remainder of ether, to avoid rounding errors
-      } else {
-        total = total.add(amountPerDay);
-      }
-      today.totalWeiContributed = today.totalWeiContributed.add(amountPerDay);
-      today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(amountPerDay);
-      emit LogTokensPurchased(msg.sender, amountPerDay, _day[i]);
-
+    assert (amountPerDay.mul(_day.length) == msg.value);
+    for (uint8 i = 0; i < _day.length; i++){
+      require(addContribution(msg.sender, amountPerDay, _day[i]));
     }
     return true;
   }
@@ -126,18 +110,35 @@ contract TokenSale {
 
   // @notice owner can withdraw funds to the foundation wallet and ddf wallet
   // @param (uint) _amount, The amount of wei to withdraw
+  // @dev must put in an _amount equally divisible by 2
   function foundationWithdraw(uint _amount)
   external
   onlyOwner
   returns (bool){
     uint half = _amount.div(2);
-    assert (half.mul(2) == _amount);
+    assert (half.mul(2) == _amount);   // check for rounding error
     mybitFoundation.transfer(half);
     developmentFund.transfer(half);
     emit LogFoundationWithdraw(msg.sender, _amount, dayFor(now));
     return true;
   }
 
+  // @notice updates ledger with the contribution from _investor
+  // @param (address) _investor: The sender of WEI to the contract
+  // @param (uint) _amount: The amount of WEI to add to _day
+  // @param (uint16) _day: The day to fund
+  function addContribution(address _investor, uint _amount, uint16 _day)
+  internal
+  returns (bool) {
+    require(_amount > 0);
+    require(duringSale(_day));
+    require(!dayFinished(_day));
+    Day storage today = day[_day];
+    today.totalWeiContributed = today.totalWeiContributed.add(_amount);
+    today.weiContributed[_investor] = today.weiContributed[_investor].add(_amount);
+    emit LogTokensPurchased(_investor, _amount, _day);
+    return true;
+  }
 
   // @notice Calculates how many tokens user is owed. (new income + claimableTokens) / 10**32
   function getTokensOwed(address _contributor, uint16 _day)
@@ -147,7 +148,6 @@ contract TokenSale {
       Day storage thisDay = day[_day];
       uint percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
       return percentage.mul(tokensPerDay).div(scalingFactor);
-
   }
 
   // @notice gets the total amount of mybit owed to the contributor
@@ -155,7 +155,7 @@ contract TokenSale {
   public
   view
   returns (uint amount) {
-    for (uint8 i = 0; i < _days.length; i++){
+    for (uint16 i = 0; i < _days.length; i++){
       amount = amount.add(getTokensOwed(_contributor, _days[i]));
     }
     return amount;
@@ -181,7 +181,7 @@ contract TokenSale {
   public
   view
   returns (uint16) {
-      return uint16(_timestamp.sub(start).div(24 hours));
+      return uint16(_timestamp.sub(start).div(86400));
   }
 
   // @notice returns true if _day is finished
@@ -191,6 +191,15 @@ contract TokenSale {
   returns (bool) {
     return dayFor(now) > _day;
   }
+
+  // @notice reverts if the current day isn't less than 365
+  function duringSale(uint16 _day)
+  public
+  view
+  returns (bool){
+    return (start > 0 && _day < uint16(365));
+  }
+
 
   // @notice return the current day
   function currentDay()
@@ -202,16 +211,12 @@ contract TokenSale {
 
   // @notice Fallback function: Purchases contributor stake in the tokens for the current day
   function ()
-  public
+  external
   payable {
-      require(fund(currentDay()));
+      require(addContribution(msg.sender, msg.value, currentDay()));
   }
 
-  // @notice reverts if the current day isn't less than 365
-  modifier duringSale(uint16 _day) {
-    require(start > 0 && _day < uint16(365));
-    _;
-  }
+
 
   // @notice only owner address can call
   modifier onlyOwner {

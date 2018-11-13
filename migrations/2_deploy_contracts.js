@@ -13,7 +13,7 @@ module.exports = function(deployer, network, accounts) {
   const tokenSupply = 180000000;      // 180 million
   const circulatingSupply = 96000000;
   const foundationSupply = tokenSupply - circulatingSupply;
-  const totalSaleAmount = bn(12000000).times(365);
+  const totalSaleAmount = bn(100000).times(365);
 
   var token, tokensale;
 
