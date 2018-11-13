@@ -17,7 +17,6 @@ contract TokenSale {
 
   // Constants
   uint constant internal scalingFactor = 10e32;
-  uint16 constant public numDays = uint16(365);
   uint constant public tokensPerDay = uint(10e22);
 
   // MyBit addresses
@@ -44,7 +43,7 @@ contract TokenSale {
   onlyOwner
   returns (bool){
     require(start == 0);
-    uint saleAmount = tokensPerDay.mul(numDays);
+    uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = now;
     emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
@@ -111,6 +110,7 @@ contract TokenSale {
 
   // @notice owner can withdraw funds to the foundation wallet and ddf wallet
   // @param (uint) _amount, The amount of wei to withdraw
+  // @dev must put in an _amount equally divisible by 2
   function foundationWithdraw(uint _amount)
   external
   onlyOwner
@@ -148,7 +148,6 @@ contract TokenSale {
       Day storage thisDay = day[_day];
       uint percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
       return percentage.mul(tokensPerDay).div(scalingFactor);
-
   }
 
   // @notice gets the total amount of mybit owed to the contributor
@@ -182,7 +181,7 @@ contract TokenSale {
   public
   view
   returns (uint16) {
-      return uint16(_timestamp.sub(start).div(24 hours));
+      return uint16(_timestamp.sub(start).div(86400));
   }
 
   // @notice returns true if _day is finished
@@ -214,7 +213,7 @@ contract TokenSale {
   function ()
   external
   payable {
-      require(fund(currentDay()));
+      require(addContribution(msg.sender, msg.value, currentDay()));
   }
 
 
