@@ -11,6 +11,8 @@
  *     gasPrice: 10000000000,
  *   },
  */
+ var HDWalletProvider = require("truffle-hdwallet-provider");
+ var fs = require('fs');
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -25,8 +27,6 @@ module.exports = {
     },
     ropsten: {
       provider: function() {
-        var HDWalletProvider = require("truffle-hdwallet-provider");
-        var fs = require('fs');
         var json = JSON.parse(fs.readFileSync('mnemonic.json', 'utf8'));
         var mnemonic = json.mnemonic;
         var portal = json.portal;
