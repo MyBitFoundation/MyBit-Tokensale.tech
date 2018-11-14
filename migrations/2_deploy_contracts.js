@@ -53,15 +53,25 @@ module.exports = function(deployer, network, accounts) {
       "TokenSale" : tokensale.address
     }
 
-    var addresses_json = JSON.stringify(addresses, null, 4);
+    var contracts_json = JSON.stringify(addresses, null, 4);
     var accounts_json = JSON.stringify(accounts, null, 4);
-    fs.writeFile('addresses.json', addresses_json, (err) => {
-     if (err) throw err;
-     console.log('Contracts Saved');
+    fs.writeFile('networks/' + network + '/contracts.json', contracts_json, (err) => {
+      if (err) throw err;
+      console.log('Contracts Saved');
     });
-    fs.writeFile('accounts.json', accounts_json, (err) => {
-     if (err) throw err;
-     console.log('Accounts Saved');
+    fs.writeFile('networks/' + network + '/accounts.json', accounts_json, (err) => {
+      if (err) throw err;
+      console.log('Accounts Saved');
     });
+
+    instanceList = [token, tokensale];
+
+    for(var i=0; i<instanceList.length; i++){
+      var instanceName = instanceList[i].constructor._json.contractName;
+      var instance_json = JSON.stringify(instanceList[i].abi, null, 4);
+      fs.writeFile('networks/' + network + '/' + instanceName + '.json', instance_json, (err) => {
+        if (err) throw err;
+      });
+    }
   });
 };
