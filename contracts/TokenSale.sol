@@ -69,7 +69,7 @@ contract TokenSale {
     require(_day.length <= 50);
     require(msg.value >= _day.length);   // need at least 1 wei per day
     uint amountPerDay = msg.value.div(_day.length);
-    assert (amountPerDay.mul(_day.length) == msg.value);
+    assert (amountPerDay.mul(_day.length) == msg.value);   // Don't allow any rounding error 
     for (uint8 i = 0; i < _day.length; i++){
       require(addContribution(msg.sender, amountPerDay, _day[i]));
     }
