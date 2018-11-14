@@ -69,7 +69,7 @@ contract TokenSale {
     require(_day.length <= 50);
     require(msg.value >= _day.length);   // need at least 1 wei per day
     uint amountPerDay = msg.value.div(_day.length);
-    assert (amountPerDay.mul(_day.length) == msg.value);   // Don't allow any rounding error 
+    assert (amountPerDay.mul(_day.length) == msg.value);   // Don't allow any rounding error
     for (uint8 i = 0; i < _day.length; i++){
       require(addContribution(msg.sender, amountPerDay, _day[i]));
     }
@@ -85,7 +85,7 @@ contract TokenSale {
       Day storage thisDay = day[_day];
       uint amount = getTokensOwed(msg.sender, _day);
       delete thisDay.weiContributed[msg.sender];
-      require(mybToken.transfer(msg.sender, amount), "couldnt transfer MYB to contributor");
+      mybToken.transfer(msg.sender, amount);
       emit LogTokensCollected(msg.sender, amount, _day);
       return true;
   }
@@ -104,7 +104,7 @@ contract TokenSale {
       delete day[_day[i]].weiContributed[msg.sender];
       emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
     }
-    require(mybToken.transfer(msg.sender, amount));
+    mybToken.transfer(msg.sender, amount);
     return true;
   }
 
