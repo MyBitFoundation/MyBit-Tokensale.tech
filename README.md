@@ -6,7 +6,7 @@
 
 # MyBit-Tokensale
 
-[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale.tech/badge.svg)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale.tech)
+[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale/badge.svg)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale)
 
 The contracts handing the token-sale for the MYB token.
 
@@ -18,33 +18,83 @@ The contracts release 100,000 MYB tokens everyday. Investors can contribute Ethe
 * Funding Currency: Ether
 * Distribution: 50% DDF, 50% MyBit Foundation
 
+## Testing
+Clone the repo
+```
+git clone https://github.com/MyBitFoundation/MyBit-Tokensale.tech.git
+```
+
+To get the dependencies run:
+```
+npm install
+```
+
+In another terminal window run:
+```
+ganache-cli  
+```
+
+Run tests
+```
+truffle test
+``` 
+
 ## Guide
 
 The contract keeps track of how much WEI it has received for a certain 24 hour period. An investor can choose any future day he wishes, or else send Ether into the current days funding period.
 
-To get the current day pass in the current timestamp:
+To get the start-time of the sale call the public variable `start`:
 
+```javascript
+uint public start()
+```
+
+To send funds call fund() with the particular day you wish to fund.
+```javascript
+function fund(uint16 _day)
+payable
+public
+returns (bool) {
+    require(addContribution(msg.sender, msg.value, _day));
+    return true;
+}
+```
+Note you must call fund() with WEI and the day must not have dayFinished
+
+To see if a day has finished call `dayFinished()` with any day:
+```javascript
+function dayFinished(uint16 _day)
+public
+view
+returns (bool) {
+  return dayFor(now) > _day;
+}
+```
+
+You can see the day for a given timestamp using:
 ```javascript
 function dayFor(uint _timestamp)
 public
 view
-returns (uint16)
+returns (uint16) {
+    return uint16(_timestamp.sub(start).div(24 hours));
+}
 ```
 
-To send funds call fund() with the partiuclar day you wish to fund
+To fund multiple future days you can call `batchFund()`:
 ```javascript
-function fund(uint16 _day)
+function batchFund(uint16[] _day)
 payable
-duringSale(_day)
-public
+external
 returns (bool) {
-    require(!dayFinished(_day));
-    require(msg.value > 0);
-    Day storage today = day[_day];
-    today.totalWeiContributed = today.totalWeiContributed.add(msg.value);
-    today.weiContributed[msg.sender] = today.weiContributed[msg.sender].add(msg.value);
-    emit LogTokensPurchased(msg.sender, msg.value, _day);
-    return true;
+  require(_day.length <= 50);
+  require(msg.value >= _day.length);   // need at least 1 wei per day
+  uint amountPerDay = msg.value.div(_day.length);
+  assert (amountPerDay.mul(_day.length) == msg.value);
+  for (uint8 i = 0; i < _day.length; i++){
+    require(addContribution(msg.sender, amountPerDay, _day[i]));
+  }
+  return true;
 }
 ```
 
@@ -87,7 +137,7 @@ To see a contributors current amount of MYB tokens owed:
 function getTokensOwed(address _contributor, uint16 _day)
 public
 view
-returns (uint);
+returns (uint) {}
 ```
 
 Or to see the total amount for a list of days:
@@ -98,15 +148,6 @@ view
 returns (uint amount);
 ```
 
-You can see the day for a given timestamp using:
-```javascript
-function dayFor(uint _timestamp)
-public
-view
-returns (uint16) {
-    return uint16(_timestamp.sub(start).div(24 hours));
-}
-```
 
 To find the current day call:
 ```javascript
