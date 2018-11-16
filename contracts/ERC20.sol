@@ -1,8 +1,8 @@
-pragma solidity 0.4.24;
+pragma solidity 0.5.0;
 
 import './ERC20Interface.sol';
 import './SafeMath.sol';
-interface ApproveAndCallFallBack { function receiveApproval(address, uint256, address, bytes) external; }
+interface ApproveAndCallFallBack { function receiveApproval(address, uint256, address, bytes calldata) external; }
 // ------------------------------------------------------------------------
 // Standard ERC20 Token Contract.
 // Fixed Supply with burn capabilities
@@ -28,7 +28,7 @@ contract ERC20 is ERC20Interface{
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor(uint _initialAmount, string _tokenName, uint8 _decimalUnits, string _tokenSymbol)
+    constructor(uint _initialAmount, string memory _tokenName, uint8 _decimalUnits, string memory _tokenSymbol)
     public {
         balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
         supply = _initialAmount;                        // Update total supply
@@ -46,8 +46,8 @@ contract ERC20 is ERC20Interface{
     function transfer(address _to, uint _amount)
     public
     returns (bool success) {
-        require(_to != address(0));         // Use burn() function instead
-        require(_to != address(this));
+        require(_to != address(0), "Address wrong");         // Use burn() function instead
+        require(_to != address(this), "Address wrong2");
         balances[msg.sender] = balances[msg.sender].sub(_amount);
         balances[_to] = balances[_to].add(_amount);
         emit Transfer(msg.sender, _to, _amount);
@@ -87,12 +87,12 @@ contract ERC20 is ERC20Interface{
     // Token holder can notify a contract that it has been approved
     // to spend _amount of tokens
     // ------------------------------------------------------------------------
-    function approveAndCall(address _spender, uint _amount, bytes _data)
+    function approveAndCall(address _spender, uint _amount, bytes memory _data)
     public
     returns (bool success) {
         allowed[msg.sender][_spender] = _amount;
         emit Approval(msg.sender, _spender, _amount);
-        ApproveAndCallFallBack(_spender).receiveApproval(msg.sender, _amount, this, _data);
+        ApproveAndCallFallBack(_spender).receiveApproval(msg.sender, _amount, address(this), _data);
         return true;
     }
 
@@ -161,7 +161,7 @@ contract ERC20 is ERC20Interface{
     // Won't accept ETH
     // ------------------------------------------------------------------------
     function ()
-    public
+    external
     payable {
         revert();
     }

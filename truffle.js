@@ -36,5 +36,11 @@ module.exports = {
       gas: 6500000,
       gasPrice: 1
     }
+  },
+
+  compilers: {
+    solc: {
+      version: "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/node_modules/solc"
+    }
   }
 };

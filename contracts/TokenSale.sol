@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.5.0;
 
 import './SafeMath.sol';
 import './ERC20Interface.sol';
@@ -21,14 +21,14 @@ contract TokenSale {
 
   // MyBit addresses
   address public owner;
-  address public mybitFoundation;
-  address public developmentFund;
+  address payable public mybitFoundation;
+  address payable public developmentFund;
 
   uint public start;      // The timestamp when sale starts
 
   mapping (uint16 => Day) public day;
 
-  constructor(address _mybToken, address _mybFoundation, address _developmentFund)
+  constructor(address _mybToken, address payable _mybFoundation, address payable _developmentFund)
   public {
     mybToken = ERC20Interface(_mybToken);
     developmentFund = _developmentFund;
@@ -62,7 +62,7 @@ contract TokenSale {
 
   // @notice Send an index of days and your payment will be divided equally among them
   // @dev WEI sent must divide equally into number of days.
-  function batchFund(uint16[] _day)
+  function batchFund(uint16[] calldata _day)
   payable
   external
   returns (bool) {
@@ -92,7 +92,7 @@ contract TokenSale {
 
   // @notice Updates claimableTokens, sends all tokens to contributor from previous days
   // @param (uint16[]) _day, list of token sale days msg.sender contributed wei towards
-  function batchWithdraw(uint16[] _day)
+  function batchWithdraw(uint16[] calldata _day)
   external
   returns (bool) {
     uint amount;
@@ -151,7 +151,7 @@ contract TokenSale {
   }
 
   // @notice gets the total amount of mybit owed to the contributor
-  function getTotalTokensOwed(address _contributor, uint16[] _days)
+  function getTotalTokensOwed(address _contributor, uint16[] memory _days)
   public
   view
   returns (uint amount) {
