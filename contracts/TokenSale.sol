@@ -38,15 +38,16 @@ contract TokenSale {
 
   // @notice owner can start the sale by transferring in required amount of MYB
   // @dev the start time is used to determine which day the sale is on (day 0 = first day)
-  function startSale()
+  function startSale(uint _timestamp)
   external
   onlyOwner
   returns (bool){
-    require(start == 0);
+    require(start == 0, 'Already started');
+    require(_timestamp >= now, 'Start time in past');
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
-    start = now.div(86400).mul(86400);
-    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
+    start = _timestamp;
+    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount, _timestamp);
     return true;
   }
 
@@ -224,7 +225,7 @@ contract TokenSale {
     _;
   }
 
-  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB);
+  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB, uint _startTime);
   event LogFoundationWithdraw(address _mybFoundation, uint _amount, uint16 _day);
   event LogTokensPurchased(address _contributor, uint _amount, uint16 _day);
   event LogTokensCollected(address _contributor, uint _amount, uint16 _day);

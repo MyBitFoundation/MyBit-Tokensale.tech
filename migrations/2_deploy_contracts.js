@@ -14,8 +14,9 @@ module.exports = function(deployer, network, accounts) {
   const circulatingSupply = bn(96000000);
   const foundationSupply = tokenSupply.minus(circulatingSupply);
   const totalSaleAmount = bn(100000).times(365);
+  const oneDay = 86400;
 
-  var token, tokensale;
+  var token, tokensale, now, midnight;
 
   const foundation = accounts[1];
   const ddf = accounts[2];
@@ -36,6 +37,16 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     token = instance;
+
+    return web3.eth.getBlock('latest');
+
+  }).then(function(instance) {
+
+    now = instance.timestamp;
+    midnight = (now - (now % oneDay)) + oneDay;
+    console.log('Now: ', now);
+    console.log('Midnight: ', midnight);
+
     return TokenSale.new(token.address, foundation, ddf);
 
   }).then(function(instance) {
@@ -45,7 +56,7 @@ module.exports = function(deployer, network, accounts) {
 
   }).then(function(tx) {
 
-    return tokensale.startSale();
+    return tokensale.startSale(midnight);
 
   }).then(function() {
     var addresses = {
