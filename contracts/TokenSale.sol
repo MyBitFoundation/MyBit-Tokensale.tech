@@ -45,7 +45,7 @@ contract TokenSale {
     require(start == 0);
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
-    start = now;
+    start = now.div(86400).mul(86400);
     emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
     return true;
   }
