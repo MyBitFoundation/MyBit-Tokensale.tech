@@ -33,9 +33,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.5.0;\n\nimport './ERC20Interface.sol';\nimport './SafeMath.sol';\ninterface ApproveAndCallFallBack { function receiveApproval(address, uint256, address, bytes calldata) external; }\n// ------------------------------------------------------------------------\n// Standard ERC20 Token Contract.\n// Fixed Supply with burn capabilities\n// ------------------------------------------------------------------------\ncontract ERC20 is ERC20Interface{\n    using SafeMath for uint;\n\n    // ------------------------------------------------------------------------\n    /// Token supply, balances and allowance\n    // ------------------------------------------------------------------------\n    uint internal supply;\n    mapping (address => uint) internal balances;\n    mapping (address => mapping (address => uint)) internal allowed;\n\n    // ------------------------------------------------------------------------\n    // Token Information\n    // ------------------------------------------------------------------------\n    string public name;                   // Full Token name\n    uint8 public decimals;                // How many decimals to show\n    string public symbol;                 // An identifier\n\n\n    // ------------------------------------------------------------------------\n    // Constructor\n    // ------------------------------------------------------------------------\n    constructor(uint _initialAmount, string memory _tokenName, uint8 _decimalUnits, string memory _tokenSymbol)\n    public {\n        balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens\n        supply = _initialAmount;                        // Update total supply\n        name = _tokenName;                                   // Set the name for display purposes\n        decimals = _decimalUnits;                            // Amount of decimals for display purposes\n        symbol = _tokenSymbol;                               // Set the symbol for display purposes\n        emit Transfer(address(0), msg.sender, _initialAmount);    // Transfer event indicating token creation\n    }\n\n\n    // ------------------------------------------------------------------------\n    // Transfer _amount tokens to address _to\n    // Sender must have enough tokens. Cannot send to 0x0.\n    // ------------------------------------------------------------------------\n    function transfer(address _to, uint _amount)\n    public\n    returns (bool success) {\n        require(_to != address(0), \"Address wrong\");         // Use burn() function instead\n        require(_to != address(this), \"Address wrong2\");\n        balances[msg.sender] = balances[msg.sender].sub(_amount);\n        balances[_to] = balances[_to].add(_amount);\n        emit Transfer(msg.sender, _to, _amount);\n        return true;\n    }\n\n    // ------------------------------------------------------------------------\n    // Transfer _amount of tokens if _from has allowed msg.sender to do so\n    //  _from must have enough tokens + must have approved msg.sender\n    // ------------------------------------------------------------------------\n    function transferFrom(address _from, address _to, uint _amount)\n    public\n    returns (bool success) {\n        require(_to != address(0));\n        require(_to != address(this));\n        balances[_from] = balances[_from].sub(_amount);\n        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);\n        balances[_to] = balances[_to].add(_amount);\n        emit Transfer(_from, _to, _amount);\n        return true;\n    }\n\n    // ------------------------------------------------------------------------\n    // Token owner can approve for `spender` to transferFrom(...) `tokens`\n    // from the token owner's account\n    // ------------------------------------------------------------------------\n    function approve(address _spender, uint _amount)\n    public\n    returns (bool success) {\n        allowed[msg.sender][_spender] = _amount;\n        emit Approval(msg.sender, _spender, _amount);\n        return true;\n    }\n\n\n    // ------------------------------------------------------------------------\n    // Token holder can notify a contract that it has been approved\n    // to spend _amount of tokens\n    // ------------------------------------------------------------------------\n    function approveAndCall(address _spender, uint _amount, bytes memory _data)\n    public\n    returns (bool success) {\n        allowed[msg.sender][_spender] = _amount;\n        emit Approval(msg.sender, _spender, _amount);\n        ApproveAndCallFallBack(_spender).receiveApproval(msg.sender, _amount, address(this), _data);\n        return true;\n    }\n\n    // ------------------------------------------------------------------------\n    // Removes senders tokens from supply.\n    // Lowers user balance and totalSupply by _amount\n    // ------------------------------------------------------------------------\n    function burn(uint _amount)\n    public\n    returns (bool success) {\n        balances[msg.sender] = balances[msg.sender].sub(_amount);\n        supply = supply.sub(_amount);\n        emit LogBurn(msg.sender, _amount);\n        emit Transfer(msg.sender, address(0), _amount);\n        return true;\n    }\n\n    // ------------------------------------------------------------------------\n    // An approved sender can burn _amount tokens of user _from\n    // Lowers user balance and supply by _amount\n    // ------------------------------------------------------------------------\n    function burnFrom(address _from, uint _amount)\n    public\n    returns (bool success) {\n        balances[_from] = balances[_from].sub(_amount);                         // Subtract from the targeted balance\n        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);             // Subtract from the sender's allowance\n        supply = supply.sub(_amount);                              // Update supply\n        emit LogBurn(_from, _amount);\n        emit Transfer(_from, address(0), _amount);\n        return true;\n    }\n\n    // ------------------------------------------------------------------------\n    // Returns the number of tokens in circulation\n    // ------------------------------------------------------------------------\n    function totalSupply()\n    public\n    view\n    returns (uint tokenSupply) {\n        return supply;\n    }\n\n    // ------------------------------------------------------------------------\n    // Returns the token balance of user\n    // ------------------------------------------------------------------------\n    function balanceOf(address _tokenHolder)\n    public\n    view\n    returns (uint balance) {\n        return balances[_tokenHolder];\n    }\n\n    // ------------------------------------------------------------------------\n    // Returns amount of tokens _spender is allowed to transfer or burn\n    // ------------------------------------------------------------------------\n    function allowance(address _tokenHolder, address _spender)\n    public\n    view\n    returns (uint remaining) {\n        return allowed[_tokenHolder][_spender];\n    }\n\n\n    // ------------------------------------------------------------------------\n    // Fallback function\n    // Won't accept ETH\n    // ------------------------------------------------------------------------\n    function ()\n    external\n    payable {\n        revert();\n    }\n\n    // ------------------------------------------------------------------------\n    // Event: Logs the amount of tokens burned and the address of the burner\n    // ------------------------------------------------------------------------\n    event LogBurn(address indexed _burner, uint indexed _amountBurned);\n}\n",
-  "sourcePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20.sol",
+  "sourcePath": "/home/dog/code/mybit/tokensale/contracts/ERC20.sol",
   "ast": {
-    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20.sol",
+    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20.sol",
     "exportedSymbols": {
       "ApproveAndCallFallBack": [
         15
@@ -58,7 +58,7 @@
         "src": "0:22:0"
       },
       {
-        "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+        "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
         "file": "./ERC20Interface.sol",
         "id": 2,
         "nodeType": "ImportDirective",
@@ -69,7 +69,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/SafeMath.sol",
+        "absolutePath": "/home/dog/code/mybit/tokensale/contracts/SafeMath.sol",
         "file": "./SafeMath.sol",
         "id": 3,
         "nodeType": "ImportDirective",
@@ -5956,7 +5956,7 @@
     "src": "0:7696:0"
   },
   "legacyAST": {
-    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20.sol",
+    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20.sol",
     "exportedSymbols": {
       "ApproveAndCallFallBack": [
         15
@@ -5979,7 +5979,7 @@
         "src": "0:22:0"
       },
       {
-        "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+        "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
         "file": "./ERC20Interface.sol",
         "id": 2,
         "nodeType": "ImportDirective",
@@ -5990,7 +5990,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/SafeMath.sol",
+        "absolutePath": "/home/dog/code/mybit/tokensale/contracts/SafeMath.sol",
         "file": "./SafeMath.sol",
         "id": 3,
         "nodeType": "ImportDirective",
@@ -11882,5 +11882,5 @@
   },
   "networks": {},
   "schemaVersion": "3.0.0-beta.1",
-  "updatedAt": "2018-11-19T18:31:05.928Z"
+  "updatedAt": "2018-11-20T04:52:44.947Z"
 }
