@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.5.0;
 
 import './SafeMath.sol';
 import './ERC20Interface.sol';
@@ -21,14 +21,14 @@ contract TokenSale {
 
   // MyBit addresses
   address public owner;
-  address public mybitFoundation;
-  address public developmentFund;
+  address payable public mybitFoundation;
+  address payable public developmentFund;
 
   uint public start;      // The timestamp when sale starts
 
   mapping (uint16 => Day) public day;
 
-  constructor(address _mybToken, address _mybFoundation, address _developmentFund)
+  constructor(address _mybToken, address payable _mybFoundation, address payable _developmentFund)
   public {
     mybToken = ERC20Interface(_mybToken);
     developmentFund = _developmentFund;
@@ -38,15 +38,16 @@ contract TokenSale {
 
   // @notice owner can start the sale by transferring in required amount of MYB
   // @dev the start time is used to determine which day the sale is on (day 0 = first day)
-  function startSale()
+  function startSale(uint _timestamp)
   external
   onlyOwner
   returns (bool){
-    require(start == 0);
+    require(start == 0, 'Already started');
+    require(_timestamp >= now, 'Start time in past');
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
-    start = now;
-    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
+    start = _timestamp;
+    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount, _timestamp);
     return true;
   }
 
@@ -62,7 +63,7 @@ contract TokenSale {
 
   // @notice Send an index of days and your payment will be divided equally among them
   // @dev WEI sent must divide equally into number of days.
-  function batchFund(uint16[] _day)
+  function batchFund(uint16[] calldata _day)
   payable
   external
   returns (bool) {
@@ -92,7 +93,7 @@ contract TokenSale {
 
   // @notice Updates claimableTokens, sends all tokens to contributor from previous days
   // @param (uint16[]) _day, list of token sale days msg.sender contributed wei towards
-  function batchWithdraw(uint16[] _day)
+  function batchWithdraw(uint16[] calldata _day)
   external
   returns (bool) {
     uint amount;
@@ -151,7 +152,7 @@ contract TokenSale {
   }
 
   // @notice gets the total amount of mybit owed to the contributor
-  function getTotalTokensOwed(address _contributor, uint16[] _days)
+  function getTotalTokensOwed(address _contributor, uint16[] memory _days)
   public
   view
   returns (uint amount) {
@@ -224,7 +225,7 @@ contract TokenSale {
     _;
   }
 
-  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB);
+  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB, uint _startTime);
   event LogFoundationWithdraw(address _mybFoundation, uint _amount, uint16 _day);
   event LogTokensPurchased(address _contributor, uint _amount, uint16 _day);
   event LogTokensCollected(address _contributor, uint _amount, uint16 _day);
