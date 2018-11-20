@@ -209,6 +209,7 @@ contract('TokenSale', async (accounts) => {
     let tokensToReceive = bn(day0Tokens).plus(day1Tokens);
     assert.equal(bn(expectedTokens).eq(tokensToReceive), true);
     tx = await tokenSale.batchWithdraw(days, {from: user1});
+    console.log('Gas cost: ', tx.receipt.gasUsed);
     let balanceAfter = await token.balanceOf(user1);
     assert.equal(bn(tokensToReceive).eq(balanceAfter), true);
     let totalBalance = bn(await token.balanceOf(user1)).plus(await token.balanceOf(user2));
@@ -219,7 +220,8 @@ contract('TokenSale', async (accounts) => {
     assert.equal(await tokenSale.getTokensOwed(user1, 0), 0);
     assert.equal(await tokenSale.getTokensOwed(user1, 1), 0);
     let balanceBefore = await token.balanceOf(user1);
-    await tokenSale.batchWithdraw([0,1], {from: user1});
+    tx = await tokenSale.batchWithdraw([0,1], {from: user1});
+    console.log('Gas cost: ', tx.receipt.gasUsed);
     assert.equal(bn(await token.balanceOf(user1)).eq(balanceBefore), true);
   })
 
@@ -281,7 +283,8 @@ contract('TokenSale', async (accounts) => {
     let balanceBefore = await token.balanceOf(user3);
     let mybOwed = await tokenSale.getTotalTokensOwed(user3, [3,4]);
     assert.equal(bn(mybOwed).eq(tokensPerDay*2), true);
-    await tokenSale.batchWithdraw([3,4], {from: user3});
+    tx = await tokenSale.batchWithdraw([3,4], {from: user3});
+    console.log('Gas cost: ', tx.receipt.gasUsed);
     let balanceDiff = bn(await token.balanceOf(user3)).minus(balanceBefore);
     assert.equal(balanceDiff.eq(mybOwed), true);
   });
@@ -340,7 +343,8 @@ contract('TokenSale', async (accounts) => {
   });
 
   it('Fund 50 days in the future', async() => {
-    await tokenSale.batchFund(batchWithdrawDays, {from:user3, value: batchWithdrawDays.length});
+    tx = await tokenSale.batchFund(batchWithdrawDays, {from:user3, value: batchWithdrawDays.length});
+    console.log('Gas cost: ', tx.receipt.gasUsed);
   });
 
   it("Move to day 57 (from 7)", async() => {
@@ -366,7 +370,8 @@ contract('TokenSale', async (accounts) => {
     let mybOwedCheck = bn(tokensPerDay).times(50);
     assert.equal(bn(batchWithdrawDays.length).eq(50), true);
     assert.equal(bn(mybOwed).eq(mybOwedCheck), true);
-    await tokenSale.batchWithdraw(batchWithdrawDays, {from: user3});
+    tx = await tokenSale.batchWithdraw(batchWithdrawDays, {from: user3});
+    console.log('Gas cost: ', tx.receipt.gasUsed);
     let balanceDiff = bn(await token.balanceOf(user3)).minus(balanceBefore);
     assert.equal(balanceDiff.eq(mybOwed), true);
   })
