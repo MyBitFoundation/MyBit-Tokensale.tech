@@ -155,6 +155,12 @@ contract ERC20 is ERC20Interface{
         return allowed[_tokenHolder][_spender];
     }
 
+    function time()
+    public
+    view
+    returns (uint) {
+      return now; 
+    }
 
     // ------------------------------------------------------------------------
     // Fallback function

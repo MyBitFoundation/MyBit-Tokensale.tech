@@ -1,6 +1,6 @@
 {
   "name": "@mybit/tokensale",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Token sale contract",
   "main": "truffle.js",
   "directories": {

@@ -16,8 +16,8 @@ contract TokenSale {
 
 
   // Constants
-  uint constant internal scalingFactor = 10e32;
-  uint constant public tokensPerDay = uint(10e22);
+  uint constant internal scalingFactor = 10**32;
+  uint constant public tokensPerDay = uint(10**22);
 
   // MyBit addresses
   address public owner;
@@ -38,14 +38,14 @@ contract TokenSale {
 
   // @notice owner can start the sale by transferring in required amount of MYB
   // @dev the start time is used to determine which day the sale is on (day 0 = first day)
-  function startSale()
+  function startSale(uint _startTime)
   external
   onlyOwner
   returns (bool){
-    require(start == 0);
+    require(startTime > now && startTime.sub(now) < 2629800);  // startTime must be in the future, but not more than 1 month
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
-    start = now;
+    start = _startTime;
     emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
     return true;
   }

@@ -62,6 +62,7 @@ contract('TokenSale', async (accounts) => {
   });
 
   it('Try to start sale from non-owner account', async() => {
+    start = await token.time().plus(120); 
     await token.transfer(user1, totalSaleAmount*WEI);
     await token.approve(tokenSale.address, totalSaleAmount*WEI, {from: user1})
     await rejects(tokenSale.startSale({from: user1}));
