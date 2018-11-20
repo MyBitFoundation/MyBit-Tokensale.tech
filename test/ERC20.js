@@ -2,34 +2,36 @@ var bn = require('bignumber.js');
 
 const Token = artifacts.require("./ERC20.sol");
 
-const owner = web3.eth.accounts[0];
-const user1 = web3.eth.accounts[1];
-const user2 = web3.eth.accounts[2];
-const tokenHolders = [user1, user2];
-
 const tokenSupply = 180000000000000000000000000;
 const tokenPerAccount = 1000000000000000000000;
 
 
-contract('Token', async() => {
+contract('Token', async(accounts) => {
+  const owner = accounts[0];
+  const user1 = accounts[1];
+  const user2 = accounts[2];
+  const tokenHolders = [user1, user2];
+
   let token;
 
   it('Deploy Token', async() => {
-    token = await Token.new(tokenSupply, "MyBit", 18, "MYB");
+    token = await Token.new(bn(tokenSupply), "MyBit", 18, "MYB");
   });
 
   it("Spread tokens to users", async() => {
     for (var i = 0; i < tokenHolders.length; i++) {
       //console.log(web3.eth.accounts[i]);
-      await token.transfer(tokenHolders[i], tokenPerAccount);
+      //console.log(tokenHolders[i]);
+      await token.transfer(tokenHolders[i], bn(tokenPerAccount));
       let userBalance = await token.balanceOf(tokenHolders[i]);
-      assert.equal(userBalance, tokenPerAccount);
+      assert.equal(Number(bn(userBalance)), Number(bn(tokenPerAccount)));
     }
     // Check token ledger is correct
-    let totalTokensCirculating = tokenHolders.length * tokenPerAccount;
+    let totalTokensCirculating = bn(tokenHolders.length).multipliedBy(tokenPerAccount);
     let remainingTokens = bn(tokenSupply).minus(totalTokensCirculating);
-    let ledgerTrue = bn(await token.balanceOf(owner)).eq(remainingTokens);
-    assert.equal(ledgerTrue, true);
+    let ownerTokens = bn(await token.balanceOf(owner));
+    console.log(ownerTokens);
+    assert.equal(Number(ownerTokens), Number(remainingTokens));
   });
 
   it('Fail to send ether to token contract', async() => {

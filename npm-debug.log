@@ -1,0 +1,198 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node',
+1 verbose cli   '/usr/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   '-g',
+1 verbose cli   'truffle@beta' ]
+2 info using npm@3.5.2
+3 info using node@v8.10.0
+4 silly loadCurrentTree Starting
+5 silly install loadCurrentTree
+6 silly install readGlobalPackageData
+7 silly fetchPackageMetaData truffle@beta
+8 silly fetchNamedPackageData truffle
+9 silly mapToRegistry name truffle
+10 silly mapToRegistry using default registry
+11 silly mapToRegistry registry https://registry.npmjs.org/
+12 silly mapToRegistry uri https://registry.npmjs.org/truffle
+13 verbose request uri https://registry.npmjs.org/truffle
+14 verbose request no auth needed
+15 info attempt registry request try #1 at 12:02:57 p.m.
+16 verbose request using bearer token for auth
+17 verbose request id 2f66361f8d53a0c1
+18 verbose etag W/"f9af3835c1e7948cb705bbec9795a272"
+19 verbose lastModified Thu, 15 Nov 2018 17:08:29 GMT
+20 http request GET https://registry.npmjs.org/truffle
+21 http 304 https://registry.npmjs.org/truffle
+22 verbose headers { date: 'Fri, 16 Nov 2018 20:02:57 GMT',
+22 verbose headers   connection: 'keep-alive',
+22 verbose headers   'set-cookie':
+22 verbose headers    [ '__cfduid=d59bd38cecb5e1bc01c4d0844665894001542398577; expires=Sat, 16-Nov-19 20:02:57 GMT; path=/; domain=.registry.npmjs.org; HttpOnly' ],
+22 verbose headers   'cf-cache-status': 'HIT',
+22 verbose headers   'cache-control': 'max-age=300',
+22 verbose headers   'cf-ray': '47ac8ee7b8987967-SEA',
+22 verbose headers   etag: '"f9af3835c1e7948cb705bbec9795a272"',
+22 verbose headers   'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
+22 verbose headers   'last-modified': 'Thu, 15 Nov 2018 17:08:29 GMT',
+22 verbose headers   vary: 'accept-encoding, accept',
+22 verbose headers   'x-amz-meta-rev': '166-bfe204301c84c1b1fba681168e7dfe15',
+22 verbose headers   server: 'cloudflare' }
+23 silly get cb [ 304,
+23 silly get   { date: 'Fri, 16 Nov 2018 20:02:57 GMT',
+23 silly get     connection: 'keep-alive',
+23 silly get     'set-cookie':
+23 silly get      [ '__cfduid=d59bd38cecb5e1bc01c4d0844665894001542398577; expires=Sat, 16-Nov-19 20:02:57 GMT; path=/; domain=.registry.npmjs.org; HttpOnly' ],
+23 silly get     'cf-cache-status': 'HIT',
+23 silly get     'cache-control': 'max-age=300',
+23 silly get     'cf-ray': '47ac8ee7b8987967-SEA',
+23 silly get     etag: '"f9af3835c1e7948cb705bbec9795a272"',
+23 silly get     'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
+23 silly get     'last-modified': 'Thu, 15 Nov 2018 17:08:29 GMT',
+23 silly get     vary: 'accept-encoding, accept',
+23 silly get     'x-amz-meta-rev': '166-bfe204301c84c1b1fba681168e7dfe15',
+23 silly get     server: 'cloudflare' } ]
+24 verbose etag https://registry.npmjs.org/truffle from cache
+25 verbose get saving truffle to /home/peter/.npm/registry.npmjs.org/truffle/.cache.json
+26 silly install normalizeTree
+27 silly loadCurrentTree Finishing
+28 silly loadIdealTree Starting
+29 silly install loadIdealTree
+30 silly cloneCurrentTree Starting
+31 silly install cloneCurrentTreeToIdealTree
+32 silly cloneCurrentTree Finishing
+33 silly loadShrinkwrap Starting
+34 silly install loadShrinkwrap
+35 silly loadShrinkwrap Finishing
+36 silly loadAllDepsIntoIdealTree Starting
+37 silly install loadAllDepsIntoIdealTree
+38 silly resolveWithNewModule truffle@5.0.0-beta.1 checking installable status
+39 silly cache add args [ 'truffle@beta', null ]
+40 verbose cache add spec truffle@beta
+41 silly cache add parsed spec Result {
+41 silly cache add   raw: 'truffle@beta',
+41 silly cache add   scope: null,
+41 silly cache add   name: 'truffle',
+41 silly cache add   rawSpec: 'beta',
+41 silly cache add   spec: 'beta',
+41 silly cache add   type: 'tag' }
+42 silly addNamed truffle@beta
+43 verbose addNamed "beta" is being treated as a dist-tag for truffle
+44 info addNameTag [ 'truffle', 'beta' ]
+45 silly mapToRegistry name truffle
+46 silly mapToRegistry using default registry
+47 silly mapToRegistry registry https://registry.npmjs.org/
+48 silly mapToRegistry uri https://registry.npmjs.org/truffle
+49 verbose addNameTag registry:https://registry.npmjs.org/truffle not in flight; fetching
+50 verbose get https://registry.npmjs.org/truffle not expired, no request
+51 silly addNameTag next cb for truffle with tag beta
+52 silly addNamed truffle@5.0.0-beta.1
+53 verbose addNamed "5.0.0-beta.1" is a plain semver version for truffle
+54 silly cache afterAdd truffle@5.0.0-beta.1
+55 verbose afterAdd /home/peter/.npm/truffle/5.0.0-beta.1/package/package.json not in flight; writing
+56 verbose afterAdd /home/peter/.npm/truffle/5.0.0-beta.1/package/package.json written
+57 silly fetchNamedPackageData mocha
+58 silly mapToRegistry name mocha
+59 silly mapToRegistry using default registry
+60 silly mapToRegistry registry https://registry.npmjs.org/
+61 silly mapToRegistry uri https://registry.npmjs.org/mocha
+62 silly fetchNamedPackageData original-require
+63 silly mapToRegistry name original-require
+64 silly mapToRegistry using default registry
+65 silly mapToRegistry registry https://registry.npmjs.org/
+66 silly mapToRegistry uri https://registry.npmjs.org/original-require
+67 silly fetchNamedPackageData solc
+68 silly mapToRegistry name solc
+69 silly mapToRegistry using default registry
+70 silly mapToRegistry registry https://registry.npmjs.org/
+71 silly mapToRegistry uri https://registry.npmjs.org/solc
+72 verbose request uri https://registry.npmjs.org/mocha
+73 verbose request no auth needed
+74 info attempt registry request try #1 at 12:02:58 p.m.
+75 verbose request using bearer token for auth
+76 verbose etag W/"bda315c48d788d9590e3d860e31039ce"
+77 verbose lastModified Sun, 30 Sep 2018 18:10:37 GMT
+78 http request GET https://registry.npmjs.org/mocha
+79 verbose request uri https://registry.npmjs.org/original-require
+80 verbose request no auth needed
+81 info attempt registry request try #1 at 12:02:58 p.m.
+82 verbose request using bearer token for auth
+83 verbose etag W/"471738d25e9ed94bdb333d66dc5d9227"
+84 verbose lastModified Sun, 27 May 2018 11:23:12 GMT
+85 http request GET https://registry.npmjs.org/original-require
+86 verbose request uri https://registry.npmjs.org/solc
+87 verbose request no auth needed
+88 info attempt registry request try #1 at 12:02:58 p.m.
+89 verbose request using bearer token for auth
+90 verbose etag W/"105453c1c31a42f9b20c4a9b6632f97b"
+91 verbose lastModified Fri, 16 Nov 2018 16:00:26 GMT
+92 http request GET https://registry.npmjs.org/solc
+93 http 304 https://registry.npmjs.org/mocha
+94 verbose headers { date: 'Fri, 16 Nov 2018 20:02:58 GMT',
+94 verbose headers   connection: 'keep-alive',
+94 verbose headers   'set-cookie':
+94 verbose headers    [ '__cfduid=db3c429577c7a8b4ef22f82c876f314541542398578; expires=Sat, 16-Nov-19 20:02:58 GMT; path=/; domain=.registry.npmjs.org; HttpOnly' ],
+94 verbose headers   'cf-cache-status': 'HIT',
+94 verbose headers   'cache-control': 'max-age=300',
+94 verbose headers   'cf-ray': '47ac8eebeb917967-SEA',
+94 verbose headers   etag: '"bda315c48d788d9590e3d860e31039ce"',
+94 verbose headers   'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
+94 verbose headers   'last-modified': 'Sun, 30 Sep 2018 18:10:37 GMT',
+94 verbose headers   vary: 'accept-encoding, accept',
+94 verbose headers   'x-amz-meta-rev': '1141-fff79e13ef61631d10b7e83167fa4a5e',
+94 verbose headers   server: 'cloudflare' }
+95 silly get cb [ 304,
+95 silly get   { date: 'Fri, 16 Nov 2018 20:02:58 GMT',
+95 silly get     connection: 'keep-alive',
+95 silly get     'set-cookie':
+95 silly get      [ '__cfduid=db3c429577c7a8b4ef22f82c876f314541542398578; expires=Sat, 16-Nov-19 20:02:58 GMT; path=/; domain=.registry.npmjs.org; HttpOnly' ],
+95 silly get     'cf-cache-status': 'HIT',
+95 silly get     'cache-control': 'max-age=300',
+95 silly get     'cf-ray': '47ac8eebeb917967-SEA',
+95 silly get     etag: '"bda315c48d788d9590e3d860e31039ce"',
+95 silly get     'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
+95 silly get     'last-modified': 'Sun, 30 Sep 2018 18:10:37 GMT',
+95 silly get     vary: 'accept-encoding, accept',
+95 silly get     'x-amz-meta-rev': '1141-fff79e13ef61631d10b7e83167fa4a5e',
+95 silly get     server: 'cloudflare' } ]
+96 verbose etag https://registry.npmjs.org/mocha from cache
+97 verbose get saving mocha to /home/peter/.npm/registry.npmjs.org/mocha/.cache.json
+98 silly resolveWithNewModule mocha@4.1.0 checking installable status
+99 silly cache add args [ 'mocha@^4.1.0', null ]
+100 verbose cache add spec mocha@^4.1.0
+101 silly cache add parsed spec Result {
+101 silly cache add   raw: 'mocha@^4.1.0',
+101 silly cache add   scope: null,
+101 silly cache add   name: 'mocha',
+101 silly cache add   rawSpec: '^4.1.0',
+101 silly cache add   spec: '>=4.1.0 <5.0.0',
+101 silly cache add   type: 'range' }
+102 silly addNamed mocha@>=4.1.0 <5.0.0
+103 verbose addNamed ">=4.1.0 <5.0.0" is a valid semver range for mocha
+104 silly addNameRange { name: 'mocha', range: '>=4.1.0 <5.0.0', hasData: false }
+105 silly mapToRegistry name mocha
+106 silly mapToRegistry using default registry
+107 silly mapToRegistry registry https://registry.npmjs.org/
+108 silly mapToRegistry uri https://registry.npmjs.org/mocha
+109 verbose addNameRange registry:https://registry.npmjs.org/mocha not in flight; fetching
+110 verbose request uri https://registry.npmjs.org/mocha
+111 verbose request no auth needed
+112 info attempt registry request try #1 at 1:39:43 p.m.
+113 verbose request using bearer token for auth
+114 verbose etag W/"bda315c48d788d9590e3d860e31039ce"
+115 verbose lastModified Sun, 30 Sep 2018 18:10:37 GMT
+116 http request GET https://registry.npmjs.org/mocha
+117 verbose stack Error: write EIO
+117 verbose stack     at _errnoException (util.js:1022:11)
+117 verbose stack     at WriteWrap.afterWrite [as oncomplete] (net.js:880:14)
+118 verbose cwd /home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech
+119 error Linux 4.15.0-38-generic
+120 error argv "/usr/bin/node" "/usr/bin/npm" "install" "-g" "truffle@beta"
+121 error node v8.10.0
+122 error npm  v3.5.2
+123 error code EIO
+124 error errno EIO
+125 error syscall write
+126 error write EIO
+127 error If you need help, you may report this error at:
+127 error     <https://github.com/npm/npm/issues>
+128 verbose exit [ 1, true ]
