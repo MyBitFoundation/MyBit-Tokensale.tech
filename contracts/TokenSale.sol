@@ -42,7 +42,7 @@ contract TokenSale {
   external
   onlyOwner
   returns (bool){
-    require(startTime > now && startTime.sub(now) < 2629800);  // startTime must be in the future, but not more than 1 month
+    require(_startTime > now && _startTime.sub(now) < 2629800);  // startTime must be in the future, but not more than 1 month
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = _startTime;
