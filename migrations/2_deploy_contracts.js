@@ -43,7 +43,7 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     now = instance.timestamp;
-    midnight = (now - (now % oneDay)) + oneDay;
+    midnight = (now - (now % oneDay)) + (oneDay / 2);
     console.log('Now: ', now);
     console.log('Midnight: ', midnight);
 

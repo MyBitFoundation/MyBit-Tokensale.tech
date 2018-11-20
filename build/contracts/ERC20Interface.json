@@ -199,9 +199,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.5.0;\n// ----------------------------------------------------------------------------\n// ERC Token Standard #20 Interface\n// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md\n// ----------------------------------------------------------------------------\ncontract ERC20Interface {\n    function totalSupply() public view returns (uint);\n    function balanceOf(address tokenOwner) public view returns (uint balance);\n    function allowance(address tokenOwner, address spender) public view returns (uint remaining);\n    function transfer(address to, uint tokens) public returns (bool success);\n    function approve(address spender, uint tokens) public returns (bool success);\n    function transferFrom(address from, address to, uint tokens) public returns (bool success);\n    function burn(uint _amount) public returns (bool success);\n\n    event Transfer(address indexed from, address indexed to, uint tokens);\n    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);\n}\n",
-  "sourcePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+  "sourcePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
   "ast": {
-    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
     "exportedSymbols": {
       "ERC20Interface": [
         520
@@ -1114,7 +1114,7 @@
     "src": "0:1023:1"
   },
   "legacyAST": {
-    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
     "exportedSymbols": {
       "ERC20Interface": [
         520
@@ -2032,5 +2032,5 @@
   },
   "networks": {},
   "schemaVersion": "3.0.0-beta.1",
-  "updatedAt": "2018-11-19T18:31:05.942Z"
+  "updatedAt": "2018-11-20T04:52:44.943Z"
 }

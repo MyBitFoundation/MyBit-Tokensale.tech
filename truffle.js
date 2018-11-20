@@ -42,7 +42,7 @@ module.exports = {
 
   compilers: {
     solc: {
-      version: "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/node_modules/solc"
+      version: "./node_modules/solc"
     }
   }
 };
