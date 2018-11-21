@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import './SafeMath.sol';
 import './ERC20Interface.sol';
@@ -16,15 +16,15 @@ contract TokenSale {
 
 
   // Constants
-  uint constant internal scalingFactor = 10e32;
-  uint constant public tokensPerDay = uint(10e22);
+  uint256 constant internal scalingFactor = 10**32;
+  uint256 constant public tokensPerDay = 10**23;
 
   // MyBit addresses
   address public owner;
   address public mybitFoundation;
   address public developmentFund;
 
-  uint public start;      // The timestamp when sale starts
+  uint256 public start;      // The timestamp when sale starts
 
   mapping (uint16 => Day) public day;
 
@@ -38,14 +38,15 @@ contract TokenSale {
 
   // @notice owner can start the sale by transferring in required amount of MYB
   // @dev the start time is used to determine which day the sale is on (day 0 = first day)
-  function startSale()
+  function startSale(uint _startTime)
   external
   onlyOwner
   returns (bool){
-    require(start == 0);
+    require (start == 0);
+    require(_startTime > now && _startTime.sub(now) < 2629800);  // startTime must be in the future, but not more than 1 month
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
-    start = now.div(86400).mul(86400);
+    start = _startTime;
     emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
     return true;
   }
@@ -130,9 +131,9 @@ contract TokenSale {
   function addContribution(address _investor, uint _amount, uint16 _day)
   internal
   returns (bool) {
-    require(_amount > 0);
-    require(duringSale(_day));
-    require(!dayFinished(_day));
+    require(_amount > 0, "must send ether with the call");
+    require(duringSale(_day), "day is not during the sale");
+    require(!dayFinished(_day), "day has already finished");
     Day storage today = day[_day];
     today.totalWeiContributed = today.totalWeiContributed.add(_amount);
     today.weiContributed[_investor] = today.weiContributed[_investor].add(_amount);
@@ -181,6 +182,7 @@ contract TokenSale {
   public
   view
   returns (uint16) {
+      if (_timestamp < start) { return 0; }
       return uint16(_timestamp.sub(start).div(86400));
   }
 
@@ -197,7 +199,7 @@ contract TokenSale {
   public
   view
   returns (bool){
-    return (start > 0 && _day < uint16(365));
+    return start > 0 && _day >= 0 && _day <= uint16(364);
   }
 
 
