@@ -17,7 +17,7 @@
     "truffle-hdwallet-provider": "^1.0.0-web3one.1"
   },
   "devDependencies": {
-    "truffle-hdwallet-provider": "^1.0.0-web3one.1",
+    "truffle-hdwallet-provider": "1.0.0-web3one.2",
     "solidity-coverage": "0.5.11"
   },
   "scripts": {
