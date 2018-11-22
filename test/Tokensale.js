@@ -89,6 +89,11 @@ contract('TokenSale', async (accounts) => {
     await rejects(tokenSale.startSale(now.minus(1)));
   });
 
+  it('Try to start sale with negative start time', async() => {
+    await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
+    await rejects(tokenSale.startSale(bn(-2)));
+  });
+
   it('Try to start sale too far in the future', async() => {
     await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
     await rejects(tokenSale.startSale(midday.plus(2629800)));
@@ -98,6 +103,11 @@ contract('TokenSale', async (accounts) => {
     await token.transfer(user1, bn(tokenSupply).multipliedBy(WEI));
     await rejects(tokenSale.startSale(midday));
     await token.transfer(owner, bn(tokenSupply).multipliedBy(WEI), {from: user1});
+  });
+
+  it('Try to start sale with ether in call', async() => {
+    await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
+    await rejects(tokenSale.startSale(midday, {value:1}));
   });
 
 
@@ -175,6 +185,11 @@ contract('TokenSale', async (accounts) => {
     }
     assert.notEqual(err, undefined);
   });
+
+    it('Try funding negative day', async() => {
+      await rejects(tokenSale.fund(bn(-2), {from: user1, value: 1}));
+    });
+
 
   it('Funding by two users', async() => {
     assert.equal(await tokenSale.currentDay(), 0);
@@ -268,18 +283,28 @@ contract('TokenSale', async (accounts) => {
     await rejects(tokenSale.foundationWithdraw(web3.eth.getBalance(tokenSale.address)+1));
   })
 
+  it("Try to withdraw odd number of wei", async() => {
+    await rejects(tokenSale.foundationWithdraw(3));
+  })
+
   it('Owner withdraws tokens for foundation + ddf', async() => {
     let weiInContract = bn(await web3.eth.getBalance(tokenSale.address));
     console.log(weiInContract);
+    let remainder = weiInContract % 2;
+    if (remainder != 0) {
+      weiInContract--;
+    }
     let foundationBalance = bn(await web3.eth.getBalance(foundation));
     let ddfBalance = bn(await web3.eth.getBalance(ddf));
     await tokenSale.foundationWithdraw(weiInContract);
 
     let foundationBalanceDiff = bn(await web3.eth.getBalance(foundation)).minus(foundationBalance);
     let ddfBalanceDiff = bn(await web3.eth.getBalance(ddf)).minus(ddfBalance);
-    assert.equal(Number(bn(await web3.eth.getBalance(tokenSale.address))), 0);
-    assert.equal(Number(foundationBalanceDiff), Number(weiInContract.dividedBy(2)))
-    assert.equal(Number(ddfBalanceDiff), Number(weiInContract.dividedBy(2)));
+    let total = foundationBalanceDiff.plus(ddfBalanceDiff);
+    assert.equal(bn(await web3.eth.getBalance(tokenSale.address)).eq(remainder), true);
+    assert.equal(total.eq(weiInContract), true);
+    assert.equal(foundationBalanceDiff.eq(weiInContract.dividedBy(2)), true);
+    assert.equal(ddfBalanceDiff.eq(weiInContract.dividedBy(2)), true);
   });
 
   it("Try to fund for days outside sale", async() => {
