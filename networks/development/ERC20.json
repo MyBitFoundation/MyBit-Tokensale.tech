@@ -253,20 +253,5 @@
         "stateMutability": "view",
         "type": "function",
         "signature": "0xdd62ed3e"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "time",
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function",
-        "signature": "0x16ada547"
     }
 ]

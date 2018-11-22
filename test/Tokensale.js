@@ -195,11 +195,16 @@ contract('TokenSale', async (accounts) => {
     assert.equal(await tokenSale.currentDay(), 0);
     tx = await tokenSale.fund(0, {from: user1, value: bn(2).multipliedBy(WEI)});
     tx = await tokenSale.fund(0, {from: user2, value: bn(2).multipliedBy(WEI)});
+    let block = await web3.eth.getBlock('latest');
+    now = bn(block.timestamp);
+    let dayOne = bn(midday).plus(86402);
+    let tillNextDay = dayOne - now;
+    console.log("day 0 starts in ", tillNextDay);
     // Move to next day
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
-        params: [86401*2.5], id: 0
+        params: [tillNextDay], id: 0
     }, function(){
       console.log('Move forward in time');
     });
