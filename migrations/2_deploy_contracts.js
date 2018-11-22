@@ -6,7 +6,6 @@ const TokenSale = artifacts.require("./TokenSale.sol");
 
 module.exports = function(deployer, network, accounts) {
   const name = "MyBit";
-  const symbol = "MYB";
   const WEI = 10**18;
 
   // Token numbers
@@ -14,8 +13,9 @@ module.exports = function(deployer, network, accounts) {
   const circulatingSupply = 96000000;
   const foundationSupply = tokenSupply - circulatingSupply;
   const totalSaleAmount = bn(100000).times(365);
+  const oneDay = 86400;
 
-  var token, tokensale;
+  var token, tokensale, now, midnight;
 
   const foundation = accounts[1];
   const ddf = accounts[2];
@@ -36,16 +36,26 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     token = instance;
+
+    return web3.eth.getBlock('latest');
+
+  }).then(function(instance) {
+
+    now = instance.timestamp;
+    midnight = (now - (now % oneDay)) + oneDay;
+    console.log('Now: ', now);
+    console.log('Midnight: ', midnight);
+
     return TokenSale.new(token.address, foundation, ddf);
 
   }).then(function(instance) {
 
     tokensale = instance;
-    return token.approve(tokensale.address , WEI*WEI);
+    return token.approve(tokensale.address ,WEI*WEI);
 
   }).then(function(tx) {
 
-    return tokensale.startSale();
+    return tokensale.startSale(midnight);
 
   }).then(function() {
     var addresses = {

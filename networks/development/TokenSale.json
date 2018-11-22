@@ -134,6 +134,11 @@
                 "indexed": false,
                 "name": "_totalMYB",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "name": "_startTime",
+                "type": "uint256"
             }
         ],
         "name": "LogSaleStarted",
@@ -207,7 +212,12 @@
     },
     {
         "constant": false,
-        "inputs": [],
+        "inputs": [
+            {
+                "name": "_timestamp",
+                "type": "uint256"
+            }
+        ],
         "name": "startSale",
         "outputs": [
             {
