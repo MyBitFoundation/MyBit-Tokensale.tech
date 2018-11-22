@@ -44,7 +44,7 @@ contract TokenSale {
   returns (bool){
     require (start == 0);
     require(_startTime > now && _startTime.sub(now) < 2629800);  // startTime must be in the future, but not more than 1 month
-    uint saleAmount = tokensPerDay.mul(365);
+    uint256 saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = _startTime;
     emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
@@ -69,7 +69,7 @@ contract TokenSale {
   returns (bool) {
     require(_day.length <= 50);
     require(msg.value >= _day.length);   // need at least 1 wei per day
-    uint amountPerDay = msg.value.div(_day.length);
+    uint256 amountPerDay = msg.value.div(_day.length);
     assert (amountPerDay.mul(_day.length) == msg.value);   // Don't allow any rounding error
     for (uint8 i = 0; i < _day.length; i++){
       require(addContribution(msg.sender, amountPerDay, _day[i]));
@@ -84,7 +84,7 @@ contract TokenSale {
   returns (bool) {
       require(dayFinished(_day), "day has not finished funding");
       Day storage thisDay = day[_day];
-      uint amount = getTokensOwed(msg.sender, _day);
+      uint256 amount = getTokensOwed(msg.sender, _day);
       delete thisDay.weiContributed[msg.sender];
       mybToken.transfer(msg.sender, amount);
       emit LogTokensCollected(msg.sender, amount, _day);
@@ -96,11 +96,11 @@ contract TokenSale {
   function batchWithdraw(uint16[] _day)
   external
   returns (bool) {
-    uint amount;
+    uint256 amount;
     require(_day.length <= 50);
     for (uint8 i = 0; i < _day.length; i++){
       require(dayFinished(_day[i]));
-      uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
+      uint256 amountToAdd = getTokensOwed(msg.sender, _day[i]);
       amount = amount.add(amountToAdd);
       delete day[_day[i]].weiContributed[msg.sender];
       emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
@@ -116,7 +116,7 @@ contract TokenSale {
   external
   onlyOwner
   returns (bool){
-    uint half = _amount.div(2);
+    uint256 half = _amount.div(2);
     assert (half.mul(2) == _amount);   // check for rounding error
     mybitFoundation.transfer(half);
     developmentFund.transfer(half);
@@ -145,9 +145,9 @@ contract TokenSale {
   function getTokensOwed(address _contributor, uint16 _day)
   public
   view
-  returns (uint) {
+  returns (uint256) {
       Day storage thisDay = day[_day];
-      uint percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
+      uint256 percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
       return percentage.mul(tokensPerDay).div(scalingFactor);
   }
 
@@ -155,7 +155,7 @@ contract TokenSale {
   function getTotalTokensOwed(address _contributor, uint16[] _days)
   public
   view
-  returns (uint amount) {
+  returns (uint256 amount) {
     for (uint16 i = 0; i < _days.length; i++){
       amount = amount.add(getTokensOwed(_contributor, _days[i]));
     }
@@ -166,14 +166,14 @@ contract TokenSale {
   function getWeiContributed(uint16 _day, address _contributor)
   public
   view
-  returns (uint) {
+  returns (uint256) {
     return day[_day].weiContributed[_contributor];
   }
 
   function getTotalWeiContributed(uint16 _day)
   public
   view
-  returns (uint) {
+  returns (uint256) {
     return day[_day].totalWeiContributed;
   }
 
@@ -182,8 +182,8 @@ contract TokenSale {
   public
   view
   returns (uint16) {
-      if (_timestamp < start) { return 0; }
-      return uint16(_timestamp.sub(start).div(86400));
+      if (_timestamp < start) return 0;
+      else return uint16(_timestamp.sub(start).div(86400));
   }
 
   // @notice returns true if _day is finished
