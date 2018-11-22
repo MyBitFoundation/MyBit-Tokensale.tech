@@ -6,9 +6,9 @@
 
 # MyBit-Tokensale
 
-[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale/badge.svg)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale)
+[![CircleCI](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech.svg?style=shield)](https://circleci.com/gh/MyBitFoundation/MyBit-Tokensale.tech) [![Coverage Status](https://coveralls.io/repos/github/MyBitFoundation/MyBit-Tokensale.tech/badge.svg?branch=master)](https://coveralls.io/github/MyBitFoundation/MyBit-Tokensale.tech?branch=master)
 
-The contracts handing the token-sale for the MYB token.
+MyBit Tokensale contracts
 
 ## Details
 The contracts release 100,000 MYB tokens everyday. Investors can contribute Ether at any day and they will split the days release of MYB in proportion to the Ether they contributed. Investors can withdraw their purchased MYB the next day. 50% of the received Ether will go towards the MyBit decentralized development fund, and the other 50% will go towards the MyBit foundation to be used for development.
@@ -37,7 +37,7 @@ ganache-cli
 Run tests
 ```
 truffle test
-``` 
+```
 
 ## Guide
 
