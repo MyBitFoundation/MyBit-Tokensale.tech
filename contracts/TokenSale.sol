@@ -16,8 +16,8 @@ contract TokenSale {
 
 
   // Constants
-  uint256 constant internal scalingFactor = 10**32;
-  uint256 constant public tokensPerDay = 10**23;
+  uint256 constant internal scalingFactor = 10**32;      // helps avoid rounding errors
+  uint256 constant public tokensPerDay = 10**23;    // 100,000 MYB
 
   // MyBit addresses
   address public owner;
