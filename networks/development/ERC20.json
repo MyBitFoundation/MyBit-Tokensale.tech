@@ -11,7 +11,8 @@
         ],
         "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "signature": "0x06fdde03"
     },
     {
         "constant": true,
@@ -25,7 +26,8 @@
         ],
         "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "signature": "0x313ce567"
     },
     {
         "constant": true,
@@ -39,7 +41,8 @@
         ],
         "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "signature": "0x95d89b41"
     },
     {
         "inputs": [
@@ -62,29 +65,13 @@
         ],
         "payable": false,
         "stateMutability": "nonpayable",
-        "type": "constructor"
+        "type": "constructor",
+        "signature": "constructor"
     },
     {
         "payable": true,
         "stateMutability": "payable",
         "type": "fallback"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "name": "_burner",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "name": "_amountBurned",
-                "type": "uint256"
-            }
-        ],
-        "name": "LogBurn",
-        "type": "event"
     },
     {
         "anonymous": false,
@@ -106,7 +93,8 @@
             }
         ],
         "name": "Transfer",
-        "type": "event"
+        "type": "event",
+        "signature": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
     },
     {
         "anonymous": false,
@@ -128,7 +116,26 @@
             }
         ],
         "name": "Approval",
-        "type": "event"
+        "type": "event",
+        "signature": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "name": "_spender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "name": "_value",
+                "type": "uint256"
+            }
+        ],
+        "name": "LogBurn",
+        "type": "event",
+        "signature": "0x38d762ef507761291a578e921acfe29c1af31a7331ea03e391cf16cfc4d4f581"
     },
     {
         "constant": false,
@@ -151,7 +158,8 @@
         ],
         "payable": false,
         "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
+        "signature": "0xa9059cbb"
     },
     {
         "constant": false,
@@ -178,57 +186,8 @@
         ],
         "payable": false,
         "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "_spender",
-                "type": "address"
-            },
-            {
-                "name": "_amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "approve",
-        "outputs": [
-            {
-                "name": "success",
-                "type": "bool"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "_spender",
-                "type": "address"
-            },
-            {
-                "name": "_amount",
-                "type": "uint256"
-            },
-            {
-                "name": "_data",
-                "type": "bytes"
-            }
-        ],
-        "name": "approveAndCall",
-        "outputs": [
-            {
-                "name": "success",
-                "type": "bool"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
+        "signature": "0x23b872dd"
     },
     {
         "constant": false,
@@ -247,7 +206,8 @@
         ],
         "payable": false,
         "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
+        "signature": "0x42966c68"
     },
     {
         "constant": false,
@@ -270,7 +230,32 @@
         ],
         "payable": false,
         "stateMutability": "nonpayable",
-        "type": "function"
+        "type": "function",
+        "signature": "0x79cc6790"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "_spender",
+                "type": "address"
+            },
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "approve",
+        "outputs": [
+            {
+                "name": "success",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0x095ea7b3"
     },
     {
         "constant": true,
@@ -284,7 +269,8 @@
         ],
         "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "signature": "0x18160ddd"
     },
     {
         "constant": true,
@@ -303,7 +289,8 @@
         ],
         "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "signature": "0x70a08231"
     },
     {
         "constant": true,
@@ -326,6 +313,7 @@
         ],
         "payable": false,
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "signature": "0xdd62ed3e"
     }
 ]

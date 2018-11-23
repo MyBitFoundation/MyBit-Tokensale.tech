@@ -1,8 +1,8 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import './ERC20Interface.sol';
 import './SafeMath.sol';
-interface ApproveAndCallFallBack { function receiveApproval(address, uint256, address, bytes) external; }
+
 // ------------------------------------------------------------------------
 // Standard ERC20 Token Contract.
 // Fixed Supply with burn capabilities
@@ -71,6 +71,35 @@ contract ERC20 is ERC20Interface{
     }
 
     // ------------------------------------------------------------------------
+    // Removes senders tokens from supply.
+    // Lowers investor balance and totalSupply by _amount
+    // ------------------------------------------------------------------------
+    function burn(uint _amount)
+    public
+    returns (bool success) {
+      balances[msg.sender] = balances[msg.sender].sub(_amount);
+      supply = supply.sub(_amount);
+      emit LogBurn(msg.sender, _amount);
+      emit Transfer(msg.sender, address(0), _amount);
+      return true;
+    }
+
+    // ------------------------------------------------------------------------
+    // An approved sender can burn _amount tokens of investor _from
+    // Lowers investor balance and supply by _amount
+    // ------------------------------------------------------------------------
+    function burnFrom(address _from, uint _amount)
+    public
+    returns (bool success) {
+      balances[_from] = balances[_from].sub(_amount);                         // Subtract from the targeted balance
+      allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);             // Subtract from the sender's allowance
+      supply = supply.sub(_amount);                              // Update supply
+      emit LogBurn(_from, _amount);
+      emit Transfer(_from, address(0), _amount);
+      return true;
+    }
+
+    // ------------------------------------------------------------------------
     // Token owner can approve for `spender` to transferFrom(...) `tokens`
     // from the token owner's account
     // ------------------------------------------------------------------------
@@ -82,48 +111,6 @@ contract ERC20 is ERC20Interface{
         return true;
     }
 
-
-    // ------------------------------------------------------------------------
-    // Token holder can notify a contract that it has been approved
-    // to spend _amount of tokens
-    // ------------------------------------------------------------------------
-    function approveAndCall(address _spender, uint _amount, bytes _data)
-    public
-    returns (bool success) {
-        allowed[msg.sender][_spender] = _amount;
-        emit Approval(msg.sender, _spender, _amount);
-        ApproveAndCallFallBack(_spender).receiveApproval(msg.sender, _amount, this, _data);
-        return true;
-    }
-
-    // ------------------------------------------------------------------------
-    // Removes senders tokens from supply.
-    // Lowers user balance and totalSupply by _amount
-    // ------------------------------------------------------------------------
-    function burn(uint _amount)
-    public
-    returns (bool success) {
-        balances[msg.sender] = balances[msg.sender].sub(_amount);
-        supply = supply.sub(_amount);
-        emit LogBurn(msg.sender, _amount);
-        emit Transfer(msg.sender, address(0), _amount);
-        return true;
-    }
-
-    // ------------------------------------------------------------------------
-    // An approved sender can burn _amount tokens of user _from
-    // Lowers user balance and supply by _amount
-    // ------------------------------------------------------------------------
-    function burnFrom(address _from, uint _amount)
-    public
-    returns (bool success) {
-        balances[_from] = balances[_from].sub(_amount);                         // Subtract from the targeted balance
-        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);             // Subtract from the sender's allowance
-        supply = supply.sub(_amount);                              // Update supply
-        emit LogBurn(_from, _amount);
-        emit Transfer(_from, address(0), _amount);
-        return true;
-    }
 
     // ------------------------------------------------------------------------
     // Returns the number of tokens in circulation
@@ -166,8 +153,4 @@ contract ERC20 is ERC20Interface{
         revert();
     }
 
-    // ------------------------------------------------------------------------
-    // Event: Logs the amount of tokens burned and the address of the burner
-    // ------------------------------------------------------------------------
-    event LogBurn(address indexed _burner, uint indexed _amountBurned);
 }

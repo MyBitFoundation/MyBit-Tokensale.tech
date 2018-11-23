@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import './SafeMath.sol';
 import './ERC20Interface.sol';
@@ -15,15 +15,15 @@ contract TokenSale {
   }
 
   // Constants
-  uint constant internal scalingFactor = 10e32;
-  uint constant public tokensPerDay = uint(10e22);
+  uint256 constant internal scalingFactor = 10**32;      // helps avoid rounding errors
+  uint256 constant public tokensPerDay = 10**23;    // 100,000 MYB
 
   // MyBit addresses
   address public owner;
   address public mybitFoundation;
   address public developmentFund;
 
-  uint public start;      // The timestamp when sale starts
+  uint256 public start;      // The timestamp when sale starts
 
   mapping (uint16 => Day) public day;
 
@@ -42,7 +42,7 @@ contract TokenSale {
   onlyOwner
   returns (bool){
     require(start == 0, 'Already started');
-    require(_timestamp >= now, 'Start time in past');
+    require(_timestamp >= now  && _timestamp.sub(now) < 2629800, 'Start time in past');
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = _timestamp;
@@ -69,7 +69,7 @@ contract TokenSale {
   returns (bool) {
     require(_day.length <= 50);
     require(msg.value >= _day.length);   // need at least 1 wei per day
-    uint amountPerDay = msg.value.div(_day.length);
+    uint256 amountPerDay = msg.value.div(_day.length);
     assert (amountPerDay.mul(_day.length) == msg.value);   // Don't allow any rounding error
     for (uint8 i = 0; i < _day.length; i++){
       require(addContribution(msg.sender, amountPerDay, _day[i]));
@@ -84,7 +84,7 @@ contract TokenSale {
   returns (bool) {
       require(dayFinished(_day), "day has not finished funding");
       Day storage thisDay = day[_day];
-      uint amount = getTokensOwed(msg.sender, _day);
+      uint256 amount = getTokensOwed(msg.sender, _day);
       delete thisDay.weiContributed[msg.sender];
       mybToken.transfer(msg.sender, amount);
       emit LogTokensCollected(msg.sender, amount, _day);
@@ -96,11 +96,11 @@ contract TokenSale {
   function batchWithdraw(uint16[] _day)
   external
   returns (bool) {
-    uint amount;
+    uint256 amount;
     require(_day.length <= 50);
     for (uint8 i = 0; i < _day.length; i++){
       require(dayFinished(_day[i]));
-      uint amountToAdd = getTokensOwed(msg.sender, _day[i]);
+      uint256 amountToAdd = getTokensOwed(msg.sender, _day[i]);
       amount = amount.add(amountToAdd);
       delete day[_day[i]].weiContributed[msg.sender];
       emit LogTokensCollected(msg.sender, amountToAdd, _day[i]);
@@ -116,7 +116,7 @@ contract TokenSale {
   external
   onlyOwner
   returns (bool){
-    uint half = _amount.div(2);
+    uint256 half = _amount.div(2);
     assert (half.mul(2) == _amount);   // check for rounding error
     mybitFoundation.transfer(half);
     developmentFund.transfer(half);
@@ -131,9 +131,9 @@ contract TokenSale {
   function addContribution(address _investor, uint _amount, uint16 _day)
   internal
   returns (bool) {
-    require(_amount > 0);
-    require(duringSale(_day));
-    require(!dayFinished(_day));
+    require(_amount > 0, "must send ether with the call");
+    require(duringSale(_day), "day is not during the sale");
+    require(!dayFinished(_day), "day has already finished");
     Day storage today = day[_day];
     today.totalWeiContributed = today.totalWeiContributed.add(_amount);
     today.weiContributed[_investor] = today.weiContributed[_investor].add(_amount);
@@ -145,9 +145,9 @@ contract TokenSale {
   function getTokensOwed(address _contributor, uint16 _day)
   public
   view
-  returns (uint) {
+  returns (uint256) {
       Day storage thisDay = day[_day];
-      uint percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
+      uint256 percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
       return percentage.mul(tokensPerDay).div(scalingFactor);
   }
 
@@ -155,7 +155,7 @@ contract TokenSale {
   function getTotalTokensOwed(address _contributor, uint16[] _days)
   public
   view
-  returns (uint amount) {
+  returns (uint256 amount) {
     for (uint16 i = 0; i < _days.length; i++){
       amount = amount.add(getTokensOwed(_contributor, _days[i]));
     }
@@ -166,14 +166,14 @@ contract TokenSale {
   function getWeiContributed(uint16 _day, address _contributor)
   public
   view
-  returns (uint) {
+  returns (uint256) {
     return day[_day].weiContributed[_contributor];
   }
 
   function getTotalWeiContributed(uint16 _day)
   public
   view
-  returns (uint) {
+  returns (uint256) {
     return day[_day].totalWeiContributed;
   }
 
@@ -182,7 +182,8 @@ contract TokenSale {
   public
   view
   returns (uint16) {
-      return uint16(_timestamp.sub(start).div(86400));
+      if (_timestamp < start) return 0;
+      else return uint16(_timestamp.sub(start).div(86400));
   }
 
   // @notice returns true if _day is finished
@@ -198,7 +199,7 @@ contract TokenSale {
   public
   view
   returns (bool){
-    return (start > 0 && _day < uint16(365));
+    return start > 0 && _day >= 0 && _day <= uint16(364);
   }
 
 

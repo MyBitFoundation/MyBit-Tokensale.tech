@@ -9,9 +9,9 @@ module.exports = function(deployer, network, accounts) {
   const WEI = 10**18;
 
   // Token numbers
-  const tokenSupply = 180000000;      // 180 million
-  const circulatingSupply = 96000000;
-  const foundationSupply = tokenSupply - circulatingSupply;
+  const tokenSupply = bn(180000000);      // 180 million
+  const circulatingSupply = bn(96000000);
+  const foundationSupply = tokenSupply.minus(circulatingSupply);
   const totalSaleAmount = bn(100000).times(365);
   const oneDay = 86400;
 
@@ -31,7 +31,7 @@ module.exports = function(deployer, network, accounts) {
                   Token,
                   TokenSale);
 
-    return Token.new(foundationSupply*WEI, "MyBit", 18, "MYB");
+    return Token.new(tokenSupply.times(WEI), "MyBit", 18, "MYB");
 
   }).then(function(instance) {
 
@@ -51,11 +51,11 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     tokensale = instance;
-    return token.approve(tokensale.address ,WEI*WEI);
+    return token.approve(tokensale.address, bn(WEI).times(WEI));
 
   }).then(function(tx) {
 
-    return tokensale.startSale(midnight);
+    return tokensale.startSale(bn(midnight));
 
   }).then(function() {
     var addresses = {
