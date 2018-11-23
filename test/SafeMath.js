@@ -22,7 +22,7 @@ contract('SafeMath', async() => {
     it('Test multiply overflow', async() => {
       let err;
       try{
-        await sf.multiply(Math.pow(2, 128), Math.pow(2, 128));
+        await sf.multiply(-1, -1);
       } catch(e){
         err = e;
       }
@@ -57,7 +57,7 @@ contract('SafeMath', async() => {
     it('Test add overflow', async() => {
       let err;
       try{
-        await sf.addto(Math.pow(2, 260), Math.pow(2, 260));
+        await sf.addto(-1, -1);
       } catch(e){
         err = e;
       }

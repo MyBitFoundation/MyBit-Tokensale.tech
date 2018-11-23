@@ -42,7 +42,7 @@ contract TokenSale {
   onlyOwner
   returns (bool){
     require(start == 0, 'Already started');
-    require(_timestamp >= now  && _timestamp.sub(now) < 2629800, 'Start time in past');
+    require(_timestamp >= now  && _timestamp.sub(now) < 2592000, 'Start time not in range');
     uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
     start = _timestamp;

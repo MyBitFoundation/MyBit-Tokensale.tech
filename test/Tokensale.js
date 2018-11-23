@@ -103,6 +103,13 @@ contract('TokenSale', async (accounts) => {
   });
 
   // ------------Day 0----------------
+  it('Fail to start sale: past', async() => {
+    await rejects(tokenSale.startSale(midnight-oneDay));
+  });
+
+  it('Fail to start sale: future', async() => {
+    await rejects(tokenSale.startSale(midnight+(oneDay*30)));
+  });
 
   it('Start token sale', async() => {
     assert.equal(await token.balanceOf(tokenSale.address), 0);
@@ -128,13 +135,14 @@ contract('TokenSale', async (accounts) => {
 
   it('Check day length', async() => {
     assert.equal(Number(bn(await tokenSale.dayFor(start))), 0);
-    let dayZero = bn(oneDay).minus(1);
-    dayZero = start.plus(dayZero);
+    let negDay = start.minus(oneDay);
     let firstDay = start.plus(oneDay);
     let lastDay = start.plus(oneDay*365);
+    console.log("neg day ", Number(await tokenSale.dayFor(negDay)));
     console.log("first day ", Number(await tokenSale.dayFor(firstDay)));
     console.log("last day ", Number(await tokenSale.dayFor(lastDay)));
-    assert.equal(await tokenSale.dayFor(dayZero), 0);
+    assert.equal(await tokenSale.dayFor(negDay), 0);
+    assert.equal(await tokenSale.dayFor(start), 0);
     assert.equal(await tokenSale.dayFor(firstDay), 1);
   });
 
@@ -146,6 +154,10 @@ contract('TokenSale', async (accounts) => {
 
   it('Try funding with no WEI', async() => {
     await rejects(tokenSale.fund(0, {from: user1}));
+  });
+
+  it('Try funding with negative WEI', async() => {
+    await rejects(tokenSale.fund(-10*WEI, {from: user1}));
   });
 
   it('Try batch funding with no WEI', async() => {
@@ -253,7 +265,11 @@ contract('TokenSale', async (accounts) => {
 
   it("Try to withdraw more wei than contract holds", async() => {
     await rejects(tokenSale.foundationWithdraw(web3.eth.getBalance(tokenSale.address)+1));
-  })
+  });
+
+  it('Fail owner withdraw', async() => {
+    await rejects(tokenSale.foundationWithdraw(1));
+  });
 
   it('Owner withdraws tokens for foundation + ddf', async() => {
     let weiInContract = bn(await web3.eth.getBalance(tokenSale.address));
