@@ -14,7 +14,6 @@ contract TokenSale {
     mapping (address => uint) weiContributed;
   }
 
-
   // Constants
   uint256 constant internal scalingFactor = 10**32;      // helps avoid rounding errors
   uint256 constant public tokensPerDay = 10**23;    // 100,000 MYB
@@ -38,18 +37,19 @@ contract TokenSale {
 
   // @notice owner can start the sale by transferring in required amount of MYB
   // @dev the start time is used to determine which day the sale is on (day 0 = first day)
-  function startSale(uint _startTime)
+  function startSale(uint _timestamp)
   external
   onlyOwner
   returns (bool){
-    require (start == 0);
-    require(_startTime > now && _startTime.sub(now) < 2629800);  // startTime must be in the future, but not more than 1 month
-    uint256 saleAmount = tokensPerDay.mul(365);
+    require(start == 0, 'Already started');
+    require(_timestamp >= now  && _timestamp.sub(now) < 2592000, 'Start time not in range');
+    uint saleAmount = tokensPerDay.mul(365);
     require(mybToken.transferFrom(msg.sender, address(this), saleAmount));
-    start = _startTime;
-    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount);
+    start = _timestamp;
+    emit LogSaleStarted(msg.sender, mybitFoundation, developmentFund, saleAmount, _timestamp);
     return true;
   }
+
 
   // @notice contributor can contribute wei to sale on any current/future _day
   // @dev only accepts contributions between days 0 - 365
@@ -218,17 +218,35 @@ contract TokenSale {
       require(addContribution(msg.sender, msg.value, currentDay()));
   }
 
-
-
   // @notice only owner address can call
   modifier onlyOwner {
     require(msg.sender == owner);
     _;
   }
 
-  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB);
+  event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB, uint _startTime);
   event LogFoundationWithdraw(address _mybFoundation, uint _amount, uint16 _day);
   event LogTokensPurchased(address _contributor, uint _amount, uint16 _day);
   event LogTokensCollected(address _contributor, uint _amount, uint16 _day);
 
 }
+/*
+contract TEST is TokenSale{
+  address private alice = 0x00a329c0648769a73afac7f9381e08fb43dbea50;
+  address private bob = 0x00a329c0648769a73afac7f9381e08fb43dbea60;
+  address private eve = 0x00a329c0648769a73afac7f9381e08fb43dbea70;
+
+  constructor(address _mybToken, address _mybFoundation, address _developmentFund)
+  public
+  TokenSale(_mybToken, _mybFoundation, _developmentFund){}
+
+  function echidna_userLessThanDay() public returns (bool){
+    uint totalOwed_ = getWeiContributed(uint16(0), alice) + getWeiContributed(uint16(0), bob) + getWeiContributed(uint16(0), eve);
+    return(totalOwed_ == getTotalWeiContributed(uint16(0)));
+  }
+
+  function echidna_testDay() public returns (bool){
+    return(currentDay() == uint16(0));
+  }
+}
+*/
