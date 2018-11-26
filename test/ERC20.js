@@ -99,6 +99,17 @@ contract('Token', async(accounts) => {
     assert.equal(await token.allowance(user2, user1), 5000);
   });
 
+  it('Burn From', async() => {
+    await token.burnFrom(user2, 5000, {from: user1});
+    assert.equal(await token.allowance(user2, user1), 0);
+  });
 
+  it('Burn', async() => {
+    let ownerBalanceBefore = await token.balanceOf(owner);
+    await token.burn(5000);
+    let ownerBalanceAfter = await token.balanceOf(owner);
+    let diff = bn(ownerBalanceBefore).minus(ownerBalanceAfter);
+    assert.equal(diff.eq(5000), true);
+  });
 
 });
