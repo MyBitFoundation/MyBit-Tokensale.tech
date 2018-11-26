@@ -3,7 +3,12 @@ pragma solidity 0.4.25;
 import './SafeMath.sol';
 import './ERC20Interface.sol';
 
-
+// @title MyBit Tokensale
+// @notice A tokensale extending for 365 days. (0....364)
+// @notice 100,000 MYB are releases everyday and split proportionaly to funders of that day
+// @notice Anyone can fund the current or future days with ETH
+// @dev The current day is (timestamp - startTimestamp) / 24 hours
+// @author Kyle Dewhurst, MyBit Foundation
 contract TokenSale {
   using SafeMath for *;
 
@@ -156,6 +161,7 @@ contract TokenSale {
   public
   view
   returns (uint256 amount) {
+    require(_days.length < 100);
     for (uint16 i = 0; i < _days.length; i++){
       amount = amount.add(getTokensOwed(_contributor, _days[i]));
     }
@@ -199,7 +205,7 @@ contract TokenSale {
   public
   view
   returns (bool){
-    return start > 0 && _day >= 0 && _day <= uint16(364);
+    return start > 0 && _day <= uint16(364);
   }
 
 
