@@ -606,4 +606,8 @@ contract('TokenSale', async (accounts) => {
     }
     rejects(tokenSale.foundationWithdraw(randomNumber));
   });
+
+  it("Try to get tokens owed for more than 100 days", async() => {
+    await rejects(tokenSale.getTotalTokensOwed(user5, allDays));
+  });
 });
