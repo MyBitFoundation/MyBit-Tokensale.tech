@@ -1,4 +1,3 @@
-
 var bn = require('bignumber.js');
 
 // Initiate contract artifacts
@@ -35,7 +34,7 @@ contract('TokenSale', async (accounts) => {
   let start;
   let oneDay = 86400;
   let now;
-  let midday;
+  let midnight;
 
   const name = "MyBit";
   const symbol = "MYB";
@@ -45,6 +44,8 @@ contract('TokenSale', async (accounts) => {
   // Token numbers
   const tokenSupply = 180000000;      // 180 million
   const circulatingSupply = 96000000;
+  const foundationSupply = tokenSupply - circulatingSupply;
+  console.log("foundation supply: " , foundationSupply);
   const tokenPerUser = bn(circulatingSupply).dividedBy(users.length).multipliedBy(WEI);
   const totalSaleAmount = bn(100000).times(365);
   console.log("total sale amount", bn(totalSaleAmount).multipliedBy(WEI));
@@ -55,9 +56,9 @@ contract('TokenSale', async (accounts) => {
     let block = await web3.eth.getBlock('latest');
     now = bn(block.timestamp);
     let remainder = now.modulo(oneDay);
-    midday = now.minus(remainder).plus(oneDay).plus(oneDay/2);
+    midnight = now.minus(remainder).plus(oneDay);
     console.log('Now: ', now);
-    console.log('Midnight: ', midday);
+    console.log('Midnight: ', midnight);
   });
 
   it('Deploy MYB token', async() => {
@@ -74,42 +75,13 @@ contract('TokenSale', async (accounts) => {
   it('Try to start sale from non-owner account', async() => {
     await token.transfer(user1, bn(totalSaleAmount).multipliedBy(WEI));
     await token.approve(tokenSale.address, bn(totalSaleAmount).multipliedBy(WEI), {from: user1})
-    await rejects(tokenSale.startSale(midday, {from: user1}));
+    await rejects(tokenSale.startSale(midnight, {from: user1}));
     await token.transfer(owner, bn(totalSaleAmount).multipliedBy(WEI), {from: user1});
   });
 
-  it('Start token sale with not enough MYB approved', async() => {
-    await rejects(tokenSale.startSale(midday));
-  });
-
-  it('Try to start sale in the past', async() => {
-    let block = await web3.eth.getBlock('latest');
-    now = bn(block.timestamp);
-    await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(now.minus(1)));
-  });
-
-  it('Try to start sale with negative start time', async() => {
-    await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(bn(-2)));
-  });
-
-  it('Try to start sale too far in the future', async() => {
-    await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(midday.plus(2629800)));
-  });
-
   it('Start token sale with not enough MYB', async() => {
-    await token.transfer(user1, bn(tokenSupply).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(midday));
-    await token.transfer(owner, bn(tokenSupply).multipliedBy(WEI), {from: user1});
+    await rejects(tokenSale.startSale(midnight));
   });
-
-  it('Try to start sale with ether in call', async() => {
-    await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(midday, {value:1}));
-  });
-
 
   it('Try funding before sale', async() => {
     await rejects(tokenSale.fund(0, {from: user1, value: bn(2).multipliedBy(WEI)}));
@@ -131,13 +103,27 @@ contract('TokenSale', async (accounts) => {
   });
 
   // ------------Day 0----------------
+  it('Fail to start sale: past', async() => {
+    await rejects(tokenSale.startSale(midnight-oneDay));
+  });
+
+  it('Fail to start sale: future', async() => {
+    await rejects(tokenSale.startSale(midnight+(oneDay*30)));
+  });
 
   it('Start token sale', async() => {
     assert.equal(await token.balanceOf(tokenSale.address), 0);
     await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
     assert.equal(bn(await token.balanceOf(owner)).gt(bn(totalSaleAmount).multipliedBy(WEI)), true);
-    await tokenSale.startSale(midday);
-
+    await tokenSale.startSale(midnight);
+    // Move to next day
+    web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [oneDay], id: 0
+    }, function(){
+      console.log('Move forward in time');
+    });
     tokensPerDay = await tokenSale.tokensPerDay();
     start = bn(await tokenSale.start());
     console.log("starting time is ", Number(start));
@@ -147,28 +133,31 @@ contract('TokenSale', async (accounts) => {
     assert.equal(bn(await token.balanceOf(tokenSale.address)).eq(bn(totalSaleAmount).multipliedBy(WEI)), true);
   });
 
-
   it('Check day length', async() => {
     assert.equal(Number(bn(await tokenSale.dayFor(start))), 0);
-    let dayZero = bn(oneDay).minus(1);
-    dayZero = start.plus(dayZero);
+    let negDay = start.minus(oneDay);
     let firstDay = start.plus(oneDay);
-    let lastDay = start.plus(oneDay*364);
+    let lastDay = start.plus(oneDay*365);
+    console.log("neg day ", Number(await tokenSale.dayFor(negDay)));
     console.log("first day ", Number(await tokenSale.dayFor(firstDay)));
     console.log("last day ", Number(await tokenSale.dayFor(lastDay)));
-    assert.equal(await tokenSale.dayFor(dayZero), 0);
+    assert.equal(await tokenSale.dayFor(negDay), 0);
+    assert.equal(await tokenSale.dayFor(start), 0);
     assert.equal(await tokenSale.dayFor(firstDay), 1);
-    assert.equal(await tokenSale.dayFor(lastDay), 364);
   });
 
   it('Try starting sale again', async() => {
     assert.equal(bn(await token.balanceOf(owner)).gt(bn(totalSaleAmount).multipliedBy(WEI)), true);
     await token.approve(tokenSale.address, bn(totalSaleAmount).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(midday));
+    await rejects(tokenSale.startSale(midnight));
   });
 
   it('Try funding with no WEI', async() => {
     await rejects(tokenSale.fund(0, {from: user1}));
+  });
+
+  it('Try funding with negative WEI', async() => {
+    await rejects(tokenSale.fund(-10*WEI, {from: user1}));
   });
 
   it('Try batch funding with no WEI', async() => {
@@ -186,25 +175,15 @@ contract('TokenSale', async (accounts) => {
     assert.notEqual(err, undefined);
   });
 
-    it('Try funding negative day', async() => {
-      await rejects(tokenSale.fund(bn(-2), {from: user1, value: 1}));
-    });
-
-
   it('Funding by two users', async() => {
     assert.equal(await tokenSale.currentDay(), 0);
     tx = await tokenSale.fund(0, {from: user1, value: bn(2).multipliedBy(WEI)});
     tx = await tokenSale.fund(0, {from: user2, value: bn(2).multipliedBy(WEI)});
-    let block = await web3.eth.getBlock('latest');
-    now = bn(block.timestamp);
-    let dayOne = bn(midday).plus(86402);
-    let tillNextDay = dayOne - now;
-    console.log("day 0 starts in ", tillNextDay);
     // Move to next day
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
-        params: [tillNextDay], id: 0
+        params: [86401], id: 0
     }, function(){
       console.log('Move forward in time');
     });
@@ -286,30 +265,24 @@ contract('TokenSale', async (accounts) => {
 
   it("Try to withdraw more wei than contract holds", async() => {
     await rejects(tokenSale.foundationWithdraw(web3.eth.getBalance(tokenSale.address)+1));
-  })
+  });
 
-  it("Try to withdraw odd number of wei", async() => {
-    await rejects(tokenSale.foundationWithdraw(3));
-  })
+  it('Fail owner withdraw', async() => {
+    await rejects(tokenSale.foundationWithdraw(1));
+  });
 
   it('Owner withdraws tokens for foundation + ddf', async() => {
     let weiInContract = bn(await web3.eth.getBalance(tokenSale.address));
     console.log(weiInContract);
-    let remainder = weiInContract % 2;
-    if (remainder != 0) {
-      weiInContract--;
-    }
     let foundationBalance = bn(await web3.eth.getBalance(foundation));
     let ddfBalance = bn(await web3.eth.getBalance(ddf));
     await tokenSale.foundationWithdraw(weiInContract);
 
     let foundationBalanceDiff = bn(await web3.eth.getBalance(foundation)).minus(foundationBalance);
     let ddfBalanceDiff = bn(await web3.eth.getBalance(ddf)).minus(ddfBalance);
-    let total = foundationBalanceDiff.plus(ddfBalanceDiff);
-    assert.equal(bn(await web3.eth.getBalance(tokenSale.address)).eq(remainder), true);
-    assert.equal(total.eq(weiInContract), true);
-    assert.equal(foundationBalanceDiff.eq(weiInContract.dividedBy(2)), true);
-    assert.equal(ddfBalanceDiff.eq(weiInContract.dividedBy(2)), true);
+    assert.equal(Number(bn(await web3.eth.getBalance(tokenSale.address))), 0);
+    assert.equal(Number(foundationBalanceDiff), Number(weiInContract.dividedBy(2)))
+    assert.equal(Number(ddfBalanceDiff), Number(weiInContract.dividedBy(2)));
   });
 
   it("Try to fund for days outside sale", async() => {
@@ -557,7 +530,7 @@ contract('TokenSale', async (accounts) => {
     assert.equal(await token.balanceOf(tokenSale.address), 0);
     await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
     assert.equal(bn(await token.balanceOf(owner)).gt(bn(totalSaleAmount).multipliedBy(WEI)), true);
-    await tokenSale.startSale((midday.plus(bn(366).times(oneDay))));
+    await tokenSale.startSale((midnight.plus(bn(366).times(oneDay))));
     // Move to next day
     web3.currentProvider.send({
         jsonrpc: "2.0",

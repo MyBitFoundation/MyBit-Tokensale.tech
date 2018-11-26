@@ -141,11 +141,16 @@
                 "indexed": false,
                 "name": "_totalMYB",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "name": "_startTime",
+                "type": "uint256"
             }
         ],
         "name": "LogSaleStarted",
         "type": "event",
-        "signature": "0x05a4a5db99c093a62c31c3cf60de62acb215e12a96373569d8ffe3443bce3235"
+        "signature": "0x8374e91c2472351bc5eb07c7e6292d3b801d821ce30fefbff40e013a94af7f94"
     },
     {
         "anonymous": false,
@@ -220,7 +225,7 @@
         "constant": false,
         "inputs": [
             {
-                "name": "_startTime",
+                "name": "_timestamp",
                 "type": "uint256"
             }
         ],
