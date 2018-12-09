@@ -57,7 +57,7 @@ contract TokenSale {
 
 
   // @notice contributor can contribute wei to sale on any current/future _day
-  // @dev only accepts contributions between days 0 - 365
+  // @dev only accepts contributions between days 0 - 364
   function fund(uint16 _day)
   payable
   public
@@ -72,7 +72,7 @@ contract TokenSale {
   payable
   external
   returns (bool) {
-    require(_day.length <= 50);
+    require(_day.length <= 50);       // Limit to 50 days to avoid exceeding blocklimit
     require(msg.value >= _day.length);   // need at least 1 wei per day
     uint256 amountPerDay = msg.value.div(_day.length);
     assert (amountPerDay.mul(_day.length) == msg.value);   // Don't allow any rounding error
@@ -102,7 +102,7 @@ contract TokenSale {
   external
   returns (bool) {
     uint256 amount;
-    require(_day.length <= 50);
+    require(_day.length <= 50);     // Limit to 50 days to avoid exceeding blocklimit
     for (uint8 i = 0; i < _day.length; i++){
       require(dayFinished(_day[i]));
       uint256 amountToAdd = getTokensOwed(msg.sender, _day[i]);
@@ -146,22 +146,24 @@ contract TokenSale {
     return true;
   }
 
-  // @notice Calculates how many tokens user is owed. (new income + claimableTokens) / 10**32
+  // @notice Calculates how many tokens user is owed. (userContribution / totalContribution) * tokensPerDay
   function getTokensOwed(address _contributor, uint16 _day)
   public
   view
   returns (uint256) {
+      require(dayFinished(_day));
       Day storage thisDay = day[_day];
       uint256 percentage = thisDay.weiContributed[_contributor].mul(scalingFactor).div(thisDay.totalWeiContributed);
       return percentage.mul(tokensPerDay).div(scalingFactor);
   }
 
   // @notice gets the total amount of mybit owed to the contributor
+  // @dev this function doesn't check for duplicate days. Output may not reflect actual amount owed if this happens.
   function getTotalTokensOwed(address _contributor, uint16[] _days)
   public
   view
   returns (uint256 amount) {
-    require(_days.length < 100);
+    require(_days.length < 100);          // Limit to 100 days to avoid exceeding block gas limit
     for (uint16 i = 0; i < _days.length; i++){
       amount = amount.add(getTokensOwed(_contributor, _days[i]));
     }
@@ -176,6 +178,8 @@ contract TokenSale {
     return day[_day].weiContributed[_contributor];
   }
 
+  // @notice returns amount of wei contributed on _day
+  // @dev if _day is outside of tokensale range it will return 0
   function getTotalWeiContributed(uint16 _day)
   public
   view
@@ -188,8 +192,8 @@ contract TokenSale {
   public
   view
   returns (uint16) {
-      if (_timestamp < start) return 0;
-      else return uint16(_timestamp.sub(start).div(86400));
+      require(_timestamp >= start);
+      return uint16(_timestamp.sub(start).div(86400));
   }
 
   // @notice returns true if _day is finished
@@ -197,6 +201,7 @@ contract TokenSale {
   public
   view
   returns (bool) {
+    if (now <= start) { return false; }   // hasn't yet reached first day, so cannot be finished
     return dayFor(now) > _day;
   }
 
@@ -218,6 +223,7 @@ contract TokenSale {
   }
 
   // @notice Fallback function: Purchases contributor stake in the tokens for the current day
+  // @dev rejects contributions by means of the fallback function until timestamp > start
   function ()
   external
   payable {
@@ -232,27 +238,7 @@ contract TokenSale {
 
   event LogSaleStarted(address _owner, address _mybFoundation, address _developmentFund, uint _totalMYB, uint _startTime);
   event LogFoundationWithdraw(address _mybFoundation, uint _amount, uint16 _day);
-  event LogTokensPurchased(address _contributor, uint _amount, uint16 _day);
-  event LogTokensCollected(address _contributor, uint _amount, uint16 _day);
+  event LogTokensPurchased(address indexed _contributor, uint _amount, uint16 indexed _day);
+  event LogTokensCollected(address indexed _contributor, uint _amount, uint16 indexed _day);
 
 }
-/*
-contract TEST is TokenSale{
-  address private alice = 0x00a329c0648769a73afac7f9381e08fb43dbea50;
-  address private bob = 0x00a329c0648769a73afac7f9381e08fb43dbea60;
-  address private eve = 0x00a329c0648769a73afac7f9381e08fb43dbea70;
-
-  constructor(address _mybToken, address _mybFoundation, address _developmentFund)
-  public
-  TokenSale(_mybToken, _mybFoundation, _developmentFund){}
-
-  function echidna_userLessThanDay() public returns (bool){
-    uint totalOwed_ = getWeiContributed(uint16(0), alice) + getWeiContributed(uint16(0), bob) + getWeiContributed(uint16(0), eve);
-    return(totalOwed_ == getTotalWeiContributed(uint16(0)));
-  }
-
-  function echidna_testDay() public returns (bool){
-    return(currentDay() == uint16(0));
-  }
-}
-*/
