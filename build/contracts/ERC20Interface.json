@@ -239,9 +239,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.4.25;\n// ----------------------------------------------------------------------------\n// ERC Token Standard #20 Interface\n// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md\n// ----------------------------------------------------------------------------\ninterface ERC20Interface {\n    function totalSupply() external returns (uint);\n    function balanceOf(address tokenOwner) external returns (uint balance);\n    function allowance(address tokenOwner, address spender) external returns (uint remaining);\n    function transfer(address to, uint tokens) external returns (bool success);\n    function approve(address spender, uint tokens) external returns (bool success);\n    function transferFrom(address from, address to, uint tokens) external returns (bool success);\n    function burn(uint _amount) external returns (bool success);\n    function burnFrom(address _from, uint _amount) external returns (bool success);\n\n    event Transfer(address indexed from, address indexed to, uint tokens);\n    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);\n    event LogBurn(address indexed _spender, uint256 _value);\n}\n",
-  "sourcePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+  "sourcePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
   "ast": {
-    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
     "exportedSymbols": {
       "ERC20Interface": [
         472
@@ -1335,7 +1335,7 @@
     "src": "0:1169:1"
   },
   "legacyAST": {
-    "absolutePath": "/home/peter/Documents/Work/MyBit/MyBit-Tokensale.tech/contracts/ERC20Interface.sol",
+    "absolutePath": "/home/dog/code/mybit/tokensale/contracts/ERC20Interface.sol",
     "exportedSymbols": {
       "ERC20Interface": [
         472
@@ -2434,5 +2434,5 @@
   },
   "networks": {},
   "schemaVersion": "3.0.0-beta.1",
-  "updatedAt": "2018-12-06T17:41:39.567Z"
+  "updatedAt": "2018-12-09T05:51:35.430Z"
 }
