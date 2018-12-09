@@ -14,6 +14,12 @@
  var HDWalletProvider = require("truffle-hdwallet-provider");
  var fs = require('fs');
 
+ if (fs.existsSync('mnemonic.json')) {
+   var json = JSON.parse(fs.readFileSync('./mnemonic.json', 'utf8'));
+   var mnemonic = json.mnemonic;
+   var infura_key = json.infura;
+ }
+
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
@@ -27,14 +33,10 @@ module.exports = {
     },
     ropsten: {
       provider: function() {
-        var json = JSON.parse(fs.readFileSync('mnemonic.json', 'utf8'));
-        var mnemonic = json.mnemonic;
-        var portal = json.portal;
-        return new HDWalletProvider(mnemonic, portal)
+        return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/" + infura_key)
       },
       network_id: 3,
-      gas: 6500000,
-      gasPrice: 1
+      gas: 8000000
     }
   }
 };
