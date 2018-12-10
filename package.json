@@ -11,12 +11,12 @@
     "coveralls": "^3.0.2",
     "ganache-cli": "^6.1.0",
     "request": "^2.87.0",
-    "solc": "^0.4.24",
+    "solc": "^0.4.25",
     "solidity-docgen": "^0.1.0",
-    "truffle": "5.0.0-beta.1"
+    "truffle": "5.0.0-beta.1",
+    "truffle-hdwallet-provider": "^1.0.0-web3one.1"
   },
   "devDependencies": {
-    "truffle-hdwallet-provider": "1.0.0-web3one.2",
     "solidity-coverage": "0.5.11"
   },
   "scripts": {

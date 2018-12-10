@@ -34,7 +34,7 @@ contract('TokenSale', async (accounts) => {
   let start;
   let oneDay = 86400;
   let now;
-  let midnight;
+  let noon;
 
   const name = "MyBit";
   const symbol = "MYB";
@@ -56,9 +56,9 @@ contract('TokenSale', async (accounts) => {
     let block = await web3.eth.getBlock('latest');
     now = bn(block.timestamp);
     let remainder = now.modulo(oneDay);
-    midnight = now.minus(remainder).plus(oneDay);
+    noon = now.minus(remainder).plus(oneDay).plus(oneDay/2);
     console.log('Now: ', now);
-    console.log('Midnight: ', midnight);
+    console.log('Noon: ', noon);
   });
 
   it('Deploy MYB token', async() => {
@@ -70,17 +70,19 @@ contract('TokenSale', async (accounts) => {
     tokenSale = await TokenSale.new(token.address, foundation, ddf);
     assert.equal(await tokenSale.start(), 0);
     assert.equal(await tokenSale.owner(), owner);
+    assert.equal(await tokenSale.mybitFoundation(), foundation);
+    assert.equal(await tokenSale.developmentFund(), ddf);
   });
 
   it('Try to start sale from non-owner account', async() => {
     await token.transfer(user1, bn(totalSaleAmount).multipliedBy(WEI));
     await token.approve(tokenSale.address, bn(totalSaleAmount).multipliedBy(WEI), {from: user1})
-    await rejects(tokenSale.startSale(midnight, {from: user1}));
+    await rejects(tokenSale.startSale(noon, {from: user1}));
     await token.transfer(owner, bn(totalSaleAmount).multipliedBy(WEI), {from: user1});
   });
 
   it('Start token sale with not enough MYB', async() => {
-    await rejects(tokenSale.startSale(midnight));
+    await rejects(tokenSale.startSale(noon));
   });
 
   it('Try funding before sale', async() => {
@@ -104,60 +106,58 @@ contract('TokenSale', async (accounts) => {
 
   // ------------Day 0----------------
   it('Fail to start sale: past', async() => {
-    await rejects(tokenSale.startSale(midnight-oneDay));
+    await rejects(tokenSale.startSale(noon-oneDay));
   });
 
   it('Fail to start sale: future', async() => {
-    await rejects(tokenSale.startSale(midnight+(oneDay*30)));
+    await rejects(tokenSale.startSale(noon+(oneDay*30)));
   });
 
   it('Start token sale', async() => {
     assert.equal(await token.balanceOf(tokenSale.address), 0);
     await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
     assert.equal(bn(await token.balanceOf(owner)).gt(bn(totalSaleAmount).multipliedBy(WEI)), true);
-    await tokenSale.startSale(midnight);
-    // Move to next day
-    web3.currentProvider.send({
-        jsonrpc: "2.0",
-        method: "evm_increaseTime",
-        params: [oneDay], id: 0
-    }, function(){
-      console.log('Move forward in time');
-    });
-    tokensPerDay = await tokenSale.tokensPerDay();
+    await tokenSale.startSale(noon);
+    tokensPerDay = bn(await tokenSale.tokensPerDay());
     start = bn(await tokenSale.start());
     console.log("starting time is ", Number(start));
-    console.log("tokens per day: ", Number(tokensPerDay / WEI));
+    console.log("tokens per day: ", Number(tokensPerDay.div(WEI)));
     assert.notEqual(await tokenSale.start(), 0);
-    assert.equal(bn(await tokenSale.dayFor(start)).eq(0), true);
+    assert.equal(bn(await tokenSale.dayFor(start.plus(1))).eq(0), true);
     assert.equal(bn(await token.balanceOf(tokenSale.address)).eq(bn(totalSaleAmount).multipliedBy(WEI)), true);
   });
 
   it('Check day length', async() => {
-    assert.equal(Number(bn(await tokenSale.dayFor(start))), 0);
-    let negDay = start.minus(oneDay);
-    let firstDay = start.plus(oneDay);
+    assert.equal(Number(bn(await tokenSale.dayFor(start.plus(1)))), 0);
+    let secondDay = start.plus(oneDay);
     let lastDay = start.plus(oneDay*365);
-    console.log("neg day ", Number(await tokenSale.dayFor(negDay)));
-    console.log("first day ", Number(await tokenSale.dayFor(firstDay)));
+    console.log("first day ", Number(await tokenSale.dayFor(secondDay)));
     console.log("last day ", Number(await tokenSale.dayFor(lastDay)));
-    assert.equal(await tokenSale.dayFor(negDay), 0);
-    assert.equal(await tokenSale.dayFor(start), 0);
-    assert.equal(await tokenSale.dayFor(firstDay), 1);
+    assert.equal(await tokenSale.dayFor(start.plus(1)), 0);
+    assert.equal(await tokenSale.dayFor(secondDay), 1);
+  });
+
+  it("Try to check dayFor() for negative day", async() => {
+    let negDay = start.minus(oneDay);
+    await rejects(tokenSale.dayFor(negDay));
   });
 
   it('Try starting sale again', async() => {
     assert.equal(bn(await token.balanceOf(owner)).gt(bn(totalSaleAmount).multipliedBy(WEI)), true);
     await token.approve(tokenSale.address, bn(totalSaleAmount).multipliedBy(WEI));
-    await rejects(tokenSale.startSale(midnight));
+    await rejects(tokenSale.startSale(noon));
   });
 
   it('Try funding with no WEI', async() => {
     await rejects(tokenSale.fund(0, {from: user1}));
   });
 
-  it('Try funding with negative WEI', async() => {
+  it('Try funding a negative day', async() => {
     await rejects(tokenSale.fund(-10*WEI, {from: user1}));
+  });
+
+  it('Try funding a negative day', async() => {
+    await rejects(tokenSale.fund(0, {from: user1, value: -10*WEI}));
   });
 
   it('Try batch funding with no WEI', async() => {
@@ -175,15 +175,29 @@ contract('TokenSale', async (accounts) => {
     assert.notEqual(err, undefined);
   });
 
+  it("Fail to fund directly before start date", async() => {
+    let err;
+    try{
+      await web3.eth.sendTransaction({from:user4, to:tokenSale.address, value: 2});
+    } catch(e){
+      err = e;
+      //console.log(e);
+    }
+    assert.notEqual(err, undefined);
+  });
+
   it('Funding by two users', async() => {
-    assert.equal(await tokenSale.currentDay(), 0);
+    let block = await web3.eth.getBlock('latest');
+    let now = bn(block.timestamp);
+    console.log("timestamp is ", now);
+    console.log("start time is ", start);
     tx = await tokenSale.fund(0, {from: user1, value: bn(2).multipliedBy(WEI)});
     tx = await tokenSale.fund(0, {from: user2, value: bn(2).multipliedBy(WEI)});
     // Move to next day
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
-        params: [86401], id: 0
+        params: [oneDay*2], id: 0
     }, function(){
       console.log('Move forward in time');
     });
@@ -333,7 +347,6 @@ contract('TokenSale', async (accounts) => {
   it('fund currentDay (5) with user3', async() => {
     assert.equal(await tokenSale.currentDay(), 5);
     await tokenSale.fund(5, {from: user3, value: 13});
-    assert.equal(bn(await tokenSale.getTokensOwed(user3, 5)).eq(tokensPerDay), true);
   });
 
   it('Try to withdraw from the current day', async() => {
@@ -365,6 +378,7 @@ contract('TokenSale', async (accounts) => {
       console.log('Move forward in time');
     });
     assert.equal(await tokenSale.currentDay(), 7);
+    assert.equal(bn(await tokenSale.getTokensOwed(user3, 5)).eq(tokensPerDay), true);
   })
 
   it('Fail to batch fund (first day passed)', async() => {
@@ -428,7 +442,6 @@ contract('TokenSale', async (accounts) => {
     let contributions = await tokenSale.getTotalWeiContributed(57);
     assert.equal(0, contributions);
     await web3.eth.sendTransaction({from:user4, to:tokenSale.address, value:1});
-    assert.equal(bn(await tokenSale.getTokensOwed(user4, 57)).eq(tokensPerDay), true);
     assert.equal(bn(await tokenSale.getTotalWeiContributed(57)).eq(1), true);
     console.log("user payed directly amount wei: ", await tokenSale.getWeiContributed(57, user4));
   });
@@ -438,9 +451,7 @@ contract('TokenSale', async (accounts) => {
     await tokenSale.fund(58, {from: user5, value: 1});
     await tokenSale.fund(58, {from: user6, value: 1});
     await tokenSale.fund(58, {from: user7, value: 1});
-    console.log("user5 is owed ", await tokenSale.getTokensOwed(user5, 58));
-    console.log("user6 is owed ", await tokenSale.getTokensOwed(user6, 58));
-    console.log("user7 is owed ", await tokenSale.getTokensOwed(user7, 58));
+
   });
 
   it("Move to day 59 (from 59)", async() => {
@@ -453,6 +464,10 @@ contract('TokenSale', async (accounts) => {
     }, function(){
       console.log('Move forward in time');
     });
+    assert.equal(bn(await tokenSale.getTokensOwed(user4, 57)).eq(tokensPerDay), true);
+    console.log("user5 is owed ", await tokenSale.getTokensOwed(user5, 58));
+    console.log("user6 is owed ", await tokenSale.getTokensOwed(user6, 58));
+    console.log("user7 is owed ", await tokenSale.getTokensOwed(user7, 58));
     assert.equal(await tokenSale.currentDay(), 59);
   });
 
@@ -530,7 +545,7 @@ contract('TokenSale', async (accounts) => {
     assert.equal(await token.balanceOf(tokenSale.address), 0);
     await token.approve(tokenSale.address , bn(totalSaleAmount).multipliedBy(WEI));
     assert.equal(bn(await token.balanceOf(owner)).gt(bn(totalSaleAmount).multipliedBy(WEI)), true);
-    await tokenSale.startSale((midnight.plus(bn(366).times(oneDay))));
+    await tokenSale.startSale((noon.plus(bn(366).times(oneDay))));
     // Move to next day
     web3.currentProvider.send({
         jsonrpc: "2.0",
@@ -566,7 +581,7 @@ contract('TokenSale', async (accounts) => {
   });
 
   it("Move to day 365 (from 0)", async() => {
-    assert.equal(await tokenSale.currentDay(), 0);
+    // assert.equal(await tokenSale.currentDay(), 0);
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",

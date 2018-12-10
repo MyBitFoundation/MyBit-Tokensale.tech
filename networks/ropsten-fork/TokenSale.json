@@ -179,7 +179,7 @@
         "anonymous": false,
         "inputs": [
             {
-                "indexed": true,
+                "indexed": false,
                 "name": "_contributor",
                 "type": "address"
             },
@@ -189,7 +189,7 @@
                 "type": "uint256"
             },
             {
-                "indexed": true,
+                "indexed": false,
                 "name": "_day",
                 "type": "uint16"
             }
@@ -202,7 +202,7 @@
         "anonymous": false,
         "inputs": [
             {
-                "indexed": true,
+                "indexed": false,
                 "name": "_contributor",
                 "type": "address"
             },
@@ -212,7 +212,7 @@
                 "type": "uint256"
             },
             {
-                "indexed": true,
+                "indexed": false,
                 "name": "_day",
                 "type": "uint16"
             }

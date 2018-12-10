@@ -15,7 +15,7 @@ module.exports = function(deployer, network, accounts) {
   const totalSaleAmount = bn(100000).times(365);
   const oneDay = 86400;
 
-  var token, tokensale, now, midnight;
+  var token, tokensale, now, noon;
 
   const foundation = accounts[1];
   const ddf = accounts[2];
@@ -42,9 +42,9 @@ module.exports = function(deployer, network, accounts) {
   }).then(function(instance) {
 
     now = instance.timestamp;
-    midnight = (now - (now % oneDay)) + oneDay;
+    noon = (now - (now % oneDay)) + oneDay + (oneDay/2);
     console.log('Now: ', now);
-    console.log('Midnight: ', midnight);
+    console.log('Noon: ', noon);
 
     return TokenSale.new(token.address, foundation, ddf);
 
@@ -55,7 +55,7 @@ module.exports = function(deployer, network, accounts) {
 
   }).then(function(tx) {
 
-    return tokensale.startSale(bn(midnight));
+    return tokensale.startSale(bn(noon));
 
   }).then(function() {
     var addresses = {
