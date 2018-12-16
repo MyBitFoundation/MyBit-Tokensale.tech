@@ -197,11 +197,11 @@ contract('TokenSale', async (accounts) => {
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
-        params: [oneDay*2], id: 0
+        params: [oneDay*2.5], id: 0
     }, function(){
       console.log('Move forward in time');
     });
-    assert.equal(await tokenSale.currentDay(), 1);
+    assert.equal(bn(await tokenSale.currentDay()).eq(1), true);
   });
 
   // ------------ Day 1 ------------
@@ -217,7 +217,7 @@ contract('TokenSale', async (accounts) => {
     tx = await tokenSale.withdraw(0, {from: user2});
     let balanceAfter = await token.balanceOf(user2);
     assert.equal(bn(balanceAfter).eq(amountToReceive), true);
-    assert.equal(await tokenSale.getWeiContributed(0, user2), 0);
+    assert.equal(bn(await tokenSale.getWeiContributed(0, user2)).eq(0), true);
   });
 
   it('Fund day 1 by two users', async() => {
@@ -226,7 +226,7 @@ contract('TokenSale', async (accounts) => {
     tx = await tokenSale.fund(1, {from:user2, value: bn(2).multipliedBy(WEI)});
     assert.equal(bn(fundAmount).eq(await tokenSale.getWeiContributed(1, user1)), true);
     assert.equal(bn(fundAmount).eq(await tokenSale.getWeiContributed(1, user2)), true);
-    assert.equal(await tokenSale.currentDay(), 1);
+    assert.equal(bn(await tokenSale.currentDay()).eq(1), true);
     web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
@@ -234,7 +234,7 @@ contract('TokenSale', async (accounts) => {
     }, function(){
       console.log('Move forward in time');
     });
-    assert.equal(await tokenSale.currentDay(), 2);
+    assert.equal(bn(await tokenSale.currentDay()).eq(2), true);
   });
 
   // ------------ Day 2 ------------
@@ -243,7 +243,7 @@ contract('TokenSale', async (accounts) => {
     let amountToReceive = await tokenSale.getTokensOwed(user2, 1);
     let balanceBefore = await token.balanceOf(user2);
     let shouldReceive = tokensPerDay / 2;
-    assert.equal(shouldReceive, amountToReceive);
+    assert.equal(bn(shouldReceive).eq(amountToReceive), true);
     tx = await tokenSale.withdraw(1, {from: user2});
     let balanceDiff = bn(await token.balanceOf(user2)).minus(balanceBefore);
     assert.equal(balanceDiff.eq(amountToReceive), true);
