@@ -13,7 +13,7 @@
     "request": "^2.87.0",
     "solc": "^0.4.25",
     "solidity-docgen": "^0.1.0",
-    "truffle": "5.0.0-beta.1",
+    "truffle": "5.0.5",
     "truffle-hdwallet-provider": "^1.0.0-web3one.1"
   },
   "devDependencies": {
